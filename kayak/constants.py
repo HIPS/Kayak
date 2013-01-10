@@ -2,10 +2,20 @@ import numpy as np
 
 from Differentiable import Differentiable
 
-def ones(shape):
+def ones(*shape):
+    if isinstance(shape[0], (list, tuple)):
+        if len(shape) > 1:
+            raise Exception("Multiple shapes specified.")
+        shape = shape[0]
+
     return constants(np.ones(shape))
 
-def zeros(shape):
+def zeros(*shape):
+    if isinstance(shape[0], (list, tuple)):
+        if len(shape) > 1:
+            raise Exception("Multiple shapes specified.")
+        shape = shape[0]
+
     return constants(np.zeros(shape))
 
 def constants(X):
@@ -20,12 +30,6 @@ class ConstantsFunc(Differentiable):
     def value(self):
         return self.X
 
-    def gradient(self, other, incoming=None):
-        if incoming is None:
-            incoming = kayak.ones(self.shape)
-
-        if self == other:
-            return incoming
-        else:
-            return kayak.zeros(self.shape)
+    def gradient(self, other):
+        return zeros(self.shape)
         
