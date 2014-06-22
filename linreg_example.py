@@ -30,7 +30,8 @@ kyk_W = kayak.Parameter(W)
 kyk_out = kayak.MatMult( kyk_inputs, kyk_W )
 
 # Elementwise Loss.
-kyk_el_loss = kayak.L2Loss(kyk_out, kyk_targets)
+#kyk_el_loss = kayak.L2Loss(kyk_out, kyk_targets)
+kyk_el_loss = kayak.L2Loss(kyk_targets, kyk_out)
 
 # Sum the losses.
 kyk_loss = kayak.MatSum( kyk_el_loss )
@@ -43,26 +44,3 @@ for ii in xrange(100):
         print loss, np.sum((kyk_W.value() - true_W)**2)
         grad = kyk_loss.grad(kyk_W)
         kyk_W.add( -learn * grad )
-
-#print grad,
-# ( Xw - t )T (Xw - t)
-# 2 (Xw - t) X
-
-#while kyk.batcher.next():
-#    
-#    # Get an evaluation object.
-#    kyk_eval = kyk_loss.eval()
-
-    # Now get gradients in terms of all these things.
-#    kyk_l1_wts_grad = kyk_loss.grad( kyk_l1_wts )
-
-    # Now get the actual values.
-#    l1_wts_grad = kyk_l1_wts_grad.value()
-
-    # Now update these guys.
-#    kyk_l1_wts.value() -= rate * l1_wts_grad
-
-    # Do this for everyone...
-
-
-

@@ -22,7 +22,6 @@ def broadcast(shape1, shape2):
         return tuple(shape)
 
 class ElemAdd(Differentiable):
-    # TODO: broadcasting
 
     def __init__(self, A, B):
         if broadcast(A.shape(), B.shape()) is None:
@@ -37,23 +36,36 @@ class ElemAdd(Differentiable):
             self._value = self.A.value(reset) + self.B.value(reset)
         return self._value
 
-    def grad(self, other, out):
-        # FIXME
-        if other == self.A or other == self.B:
-            return Ones(other.shape()) # REALLY FIXME
+    def grad(self, other, outgrad=1.0):
+        if other == self.A:
+            broadcast_axes = tuple(np.nonzero(np.array(self.A.shape())==1)[0])
+            return np.sum(outgrad, axis=broadcast_axes).reshape(self.A.shape())
+
+        elif other == self.B:
+            broadcast_axes = tuple(np.nonzero(np.array(self.B.shape())==1)[0])
+            return np.sum(outgrad, axis=broadcast_axes).reshape(self.B.shape())
+
         else:
 
             dep_A = self.A.depends(other)
             dep_B = self.B.depends(other)
 
             if dep_A and dep_B:
-                return MatAdd( self.A.grad(other), self.B.grad(other) )
+                bcast_A = tuple(np.nonzero(np.array(self.A.shape())==1)[0])
+                bcast_B = tuple(np.nonzero(np.array(self.B.shape())==1)[0])
+                return (self.A.grad(other, np.sum(outgrad, axis=bcast_A).reshape(self.A.shape()))
+                        + self.B.grad(other, np.sum(outgrad, axis=bcast_B).reshape(self.B.shape())))
+
             elif dep_A:
-                return self.A.grad(other)
+                bcast_A = tuple(np.nonzero(np.array(self.A.shape())==1)[0])
+                return self.A.grad(other, np.sum(outgrad, axis=bcast_A).reshape(self.A.shape()))
+
             elif dep_B:
-                return self.B.grad(other)
+                bcast_B = tuple(np.nonzero(np.array(self.B.shape())==1)[0])
+                return self.B.grad(other, np.sum(outgrad, axis=bcast_B).reshape(self.B.shape()))
+
             else:
-                return Zeros(other.shape())
+                return np.zeros(other.shape())
 
     def depends(self, other):
         return other == self.A or other == self.B or self.A.depends(other) or self.B.depends(other)
