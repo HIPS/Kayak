@@ -12,9 +12,9 @@ class L2Loss(Differentiable):
         self.targ   = target
         self._value = None
 
-    def value(self, reset=False):
+    def value(self, reset=False, rng=None):
         if reset or self._value is None:
-            self._value = np.sum((self.pred.value(reset) - self.targ.value(reset))**2)
+            self._value = np.sum((self.pred.value(reset, rng=rng) - self.targ.value(reset, rng=rng))**2)
         return self._value
 
     def grad(self, other, out):

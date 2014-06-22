@@ -31,9 +31,9 @@ class ElemAdd(Differentiable):
         self.B      = B
         self._value = None
 
-    def value(self, reset=False):
+    def value(self, reset=False, rng=None):
         if reset or self._value is None:
-            self._value = self.A.value(reset) + self.B.value(reset)
+            self._value = self.A.value(reset, rng=rng) + self.B.value(reset, rng=rng)
         return self._value
 
     def grad(self, other, outgrad=1.0):
@@ -72,70 +72,3 @@ class ElemAdd(Differentiable):
 
     def shape(self):
         return broadcast(self.A.shape(), self.B.shape())
-
-class ElemMult(Differentiable):
-
-    def __init__(self, A, B):
-        if broadcast(A.shape(), B.shape()) is None:
-            raise Exception("Matrices are not broadcastable: %s vs %s" % (A.shape(), B.shape()))
-
-        self.A      = A
-        self.B      = B
-        self._value = None
-
-    def value(self, reset=False):
-        if reset or self._value is None:
-            self._value = self.A * self.B
-        return self._value
-
-    def grad(self, other):
-        # FIXME
-        if other == self.A:
-            return self.B
-        elif other == self.B:
-            return self.A
-        else:
-
-            dep_A = self.A.depends(other)
-            dep_B = self.B.depends(other)
-
-            if dep_A and dep_B:
-                return ElemAdd( ElemMult(self.A.grad(other), self.B),
-                                ElemMult(self.A, self.B.grad(other)))
-            elif dep_A:
-                return ElemMult(self.A.grad(other), self.B)
-            elif depB:
-                return ElemMult(self.A, self.B.grad(other))
-            else:
-                return Zeros(other.shape())
-
-    def depends(self, other):
-        return other == self.A or other == self.B or self.A.depends(other) or self.B.depends(other)
-
-    def shape(self):
-        return broadcast(self.A.shape(), self.B.shape())
-
-class Scale(Differentiable):
-    # FIXME
-    def __init__(self, A, scale):
-        self.A     = A
-        self.scale = scale
-
-    def value(self, reset=False):
-        if reset or self._value is None:
-            self._value = self.A * self.scale
-        return self._value
-
-    def grad(self, other):
-        if other == self.A:
-            return Constant(self.scale * np.ones(self.A.shape()))
-        elif self.A.depends(other):
-            return Scale(self.A.grad(other), self.scale)
-        else:
-            return Zeros(other.shape())
-
-    def depends(self, other):
-        return other == self.A or self.A.depends(other)
-
-    def shape(self):
-        return self.A.shape()

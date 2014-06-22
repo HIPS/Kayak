@@ -20,15 +20,16 @@ kyk_inputs = kayak.Inputs(X)
 kyk_targets = kayak.Targets(Y)
 
 # First layer weights and biases.
-kyk_W1 = kayak.Parameter( 0.01*npr.randn(D, H1) )
-kyk_B1 = kayak.Parameter( 0.01*npr.randn(1,H1) )
+kyk_W1 = kayak.Parameter( npr.randn(D, H1) )
+kyk_B1 = kayak.Parameter( npr.randn(1,H1) )
 
-# First layer weight mult plus biases.
-kyk_H1 = kayak.ElemAdd(kayak.MatMult( kyk_inputs, kyk_W1 ), kyk_B1)
+# First layer weight mult plus biases, then nonlinearity.
+kyk_H1 = kayak.Dropout(kayak.HardReLU(kayak.ElemAdd(kayak.MatMult( kyk_inputs, kyk_W1 ), kyk_B1)), drop_prob=0.5)
+#kyk_H1 = kayak.ElemAdd(kayak.MatMult( kyk_inputs, kyk_W1 ), kyk_B1)
 
 # Second layer weights and bias.
-kyk_W2 = kayak.Parameter( 0.01*npr.randn(H1, P) )
-kyk_B2 = kayak.Parameter( 0.01*npr.randn(1,P) )
+kyk_W2 = kayak.Parameter( npr.randn(H1, P) )
+kyk_B2 = kayak.Parameter( npr.randn(1,P) )
 
 # Second layer multiplication.
 kyk_out = kayak.ElemAdd(kayak.MatMult( kyk_H1, kyk_W2 ), kyk_B2)
@@ -39,11 +40,17 @@ kyk_el_loss = kayak.L2Loss(kyk_out, kyk_targets)
 # Sum the losses.
 kyk_loss = kayak.MatSum( kyk_el_loss )
 
-print kayak.util.checkgrad(kyk_W2, kyk_loss)
-print kayak.util.checkgrad(kyk_B2, kyk_loss)
-print kayak.util.checkgrad(kyk_W1, kyk_loss)
-print kayak.util.checkgrad(kyk_B1, kyk_loss)
+print "W2:", kayak.util.checkgrad(kyk_W2, kyk_loss)
+print "B2:", kayak.util.checkgrad(kyk_B2, kyk_loss)
+print "W1:", kayak.util.checkgrad(kyk_W1, kyk_loss)
+print "B1:", kayak.util.checkgrad(kyk_B1, kyk_loss)
 
+#UU = kayak.Parameter(npr.randn(1,1))
+#WW = kayak.Parameter(npr.randn(7,5))
+#XX = kayak.Parameter(npr.randn(5,1))
+#YY = kayak.SoftReLU(kayak.MatAdd(kayak.MatMult(WW, XX), UU))
+#ZZ = kayak.MatSum(YY)
+#print kayak.util.checkgrad(XX, ZZ)
 
 
 #for ii in xrange(100):

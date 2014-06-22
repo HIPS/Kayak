@@ -16,9 +16,9 @@ class MatMult(Differentiable):
         self.B      = B
         self._value = None
 
-    def value(self, reset=False):
+    def value(self, reset=False, rng=None):
         if reset or self._value is None:
-            self._value = np.dot( self.A.value(reset), self.B.value(reset) )
+            self._value = np.dot( self.A.value(reset, rng=rng), self.B.value(reset, rng=rng) )
         return self._value
 
     def grad(self, other, outgrad):
@@ -57,15 +57,15 @@ class MatSum(Differentiable):
         self.axis   = axis
         self._value = None
 
-    def value(self, reset=False):
+    def value(self, reset=False, rng=None):
         if reset or self._value is None:
             if self.axis is None:
                 # Handle the sum over all elements.
-                A_val = self.A.value(reset)
+                A_val = self.A.value(reset, rng=rng)
                 self._value = np.sum(A_val).reshape([1] * len(A_val.shape))
             else:
                 # Handle a sum and reexpansion over one dimension.
-                self._value = np.expand_dims(np.sum(self.A.value(reset), axis=self.axis), axis=self.axis)
+                self._value = np.expand_dims(np.sum(self.A.value(reset, rng=rng), axis=self.axis), axis=self.axis)
         return self._value
 
     def grad(self, other, outgrad=1.0):

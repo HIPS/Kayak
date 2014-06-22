@@ -5,7 +5,7 @@ class Targets(object):
         self.data = Y # Assume NxP
         self.batcher = batcher
 
-    def value(self, reset=False):
+    def value(self, reset=False, rng=None):
         if self.batcher is None:
             return self.data
         else:
