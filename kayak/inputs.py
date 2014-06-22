@@ -2,18 +2,23 @@
 class Inputs(object):
 
     def __init__(self, X, batcher=None):
-        self.data  = X # Assume NxD
+        self.data    = X # Assume NxD
+        self.batcher = batcher
 
     def value(self, reset=False):
-        # FIXME: batcher
-        return self.data
+        if self.batcher is None:
+            return self.data
+        else:
+            return self.data[self.batcher.indices(),:]
     
     def shape(self):
-        # FIXME: batcher
-        return self.data.shape
+        if self.batcher is None:
+            return self.data.shape
+        else:
+            return self.data[self.batcher.indices(),:].shape
 
     def grad(self, other):
         raise Exception("Not sensible to compute gradient in terms of inputs.")
 
     def depends(self, other):
-        pass
+        return False
