@@ -46,7 +46,7 @@ class L2Loss(Differentiable):
     def depends(self, other):
         return self.pred == other or self.targ == other or self.pred.depends(other) or self.targ.depends(other)
 
-class LogMultinomial(Differentiable):
+class LogMultinomialLoss(Differentiable):
 
     def __init__(self, log_probs, counts, axis=1):
         if log_probs.shape() != counts.shape():
@@ -59,28 +59,28 @@ class LogMultinomial(Differentiable):
 
     def value(self, reset=False, rng=None):
         if reset or self._value is None:
-            self._value = np.expand_dims(np.sum( self.counts.value(reset,rng) * self.log_probs.value(reset,rng), axis=self.axis), axis=self.axis)
+            self._value = -np.expand_dims(np.sum( self.counts.value(reset,rng) * self.log_probs.value(reset,rng), axis=self.axis), axis=self.axis)
         return self._value
 
     def grad(self, other, outgrad=1.0):
         if other == self.log_probs:
-            return outgrad * self.counts.value()
+            return -outgrad * self.counts.value()
         elif other == self.counts:
-            return outgrad * self.log_probs.value()
+            return -outgrad * self.log_probs.value()
         else:
 
-            dep_log_probs = self.log_probs.depend(other)
-            dep_counts    = self.counts.depend(other)
+            dep_log_probs = self.log_probs.depends(other)
+            dep_counts    = self.counts.depends(other)
 
             if dep_log_probs and dep_counts:
-                return ( self.log_probs.grad(other, outgrad * self.counts.value())
-                         + self.counts.grad(other, outgrad * self.log_probs.value()))
+                return ( self.log_probs.grad(other, -outgrad * self.counts.value())
+                         + self.counts.grad(other, -outgrad * self.log_probs.value()))
             
             elif dep_log_probs:
-                return self.log_probs.grad(other, outgrad * self.counts.value())
+                return self.log_probs.grad(other, -outgrad * self.counts.value())
 
             elif dep_counts:
-                return self.counts.grad(other, outgrad * self.log_probs.value())
+                return self.counts.grad(other, -outgrad * self.log_probs.value())
 
             else:
                 return np.zeros(other.shape())

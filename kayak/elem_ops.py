@@ -44,6 +44,7 @@ class ElemAdd(Differentiable):
     def grad(self, other, outgrad=None):
         if outgrad is None:
             outgrad = np.ones(broadcast(self.A.shape(), self.B.shape()))
+
         if other == self.A:
             broadcast_axes = tuple(np.nonzero(np.array(self.A.shape())==1)[0])
             return np.sum(outgrad, axis=broadcast_axes).reshape(self.A.shape())

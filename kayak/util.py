@@ -26,8 +26,8 @@ def checkgrad(input, output, epsilon=1e-4):
 
         #print in_dims, (an_grad[in_dims] - fd_grad[in_dims])/np.abs(fd_grad[in_dims]), an_grad[in_dims], fd_grad[in_dims]
         
-    return np.mean(np.abs((an_grad - fd_grad)/fd_grad))
+    return np.mean(np.abs((an_grad - fd_grad)/(fd_grad+np.finfo(float).eps)))
             
 def logsumexp(X, axis=None):
-    maxes = np.max(X, axis=axis)
-    return np.log(np.sum(np.exp(X - maxes), axis=axis)) + maxes
+    maxes = np.expand_dims(np.max(X, axis=axis), axis=axis)
+    return np.expand_dims(np.log(np.sum(np.exp(X - maxes), axis=axis)), axis=axis) + maxes

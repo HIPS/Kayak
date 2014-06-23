@@ -62,8 +62,8 @@ class LogSoftMax(Nonlinearity):
     def value(self, reset=False, rng=None):
         if reset or self._value is None:
             X = self.X.value(reset, rng)
-            self._value = X - np.expand_dims(util.logsumexp(X, axis=self.axis), axis=self.axis)
+            self._value = X - util.logsumexp(X, axis=self.axis)
         return self._value
 
     def local_grad(self, other, outgrad):
-        return outgrad * (np.eye(self.X.shape()[0]) - np.exp(self.value()))
+        return outgrad - (np.exp(self.value()) * np.expand_dims(np.sum(outgrad, axis=self.axis), axis=self.axis))
