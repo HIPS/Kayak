@@ -23,7 +23,12 @@ def broadcast(shape1, shape2):
 
 class ElemAdd(Differentiable):
 
-    def __init__(self, A, B):
+    def __init__(self, A, B, *args):
+
+        # Recurse to handle lists of arguments.
+        if len(args) > 0:
+            B = ElemAdd(B, *args)
+        
         if broadcast(A.shape(), B.shape()) is None:
             raise Exception("Matrices are not broadcastable: %s vs %s" % (A.shape(), B.shape()))
 
@@ -36,7 +41,9 @@ class ElemAdd(Differentiable):
             self._value = self.A.value(reset, rng=rng) + self.B.value(reset, rng=rng)
         return self._value
 
-    def grad(self, other, outgrad=1.0):
+    def grad(self, other, outgrad=None):
+        if outgrad is None:
+            outgrad = np.ones(broadcast(self.A.shape(), self.B.shape()))
         if other == self.A:
             broadcast_axes = tuple(np.nonzero(np.array(self.A.shape())==1)[0])
             return np.sum(outgrad, axis=broadcast_axes).reshape(self.A.shape())

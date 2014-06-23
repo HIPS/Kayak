@@ -22,4 +22,5 @@ from elem_ops       import ElemAdd
 from nonlinearities import SoftReLU, HardReLU
 from losses         import L2Loss
 from dropout        import Dropout
+from regularizers   import L2Norm
 
