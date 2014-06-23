@@ -1,58 +1,69 @@
 import numpy as np
 
+import util
+
 from . import Differentiable
 
-class SoftReLU(Differentiable):
+class Nonlinearity(Differentiable):
 
-    def __init__(self, A, scale=1.0):
-        self.A      = A
+    def __init__(self, X):
+        self.X      = X
+        self._value = None
+
+    def grad(self, other, outgrad=1.0):
+        if other == self.X:
+            return self.local_grad(other, outgrad)
+        elif self.X.depends(other):
+            return self.X.grad(other, self.local_grad(other, outgrad))
+        else:
+            return np.zeros(other.shape())
+
+    def depends(self, other):
+        return self.X == other or self.X.depends(other)
+
+    def shape(self):
+        return self.X.shape()
+
+
+class SoftReLU(Nonlinearity):
+
+    def __init__(self, X, scale=1.0):
+        super(SoftReLU, self).__init__(X)
         self.scale  = scale
-        self._value = None
 
     def value(self, reset=False, rng=None):
         if reset or self._value is None:
-            self._value = np.log(1.0 + np.exp( self.A.value(reset, rng=rng)/self.scale ))*self.scale
+            self._value = np.log(1.0 + np.exp( self.X.value(reset, rng)/self.scale ))*self.scale
         return self._value
 
-    def grad(self, other, outgrad=1.0):
-        if other == self.A:
-            return outgrad/(1.0 + np.exp( - self.A.value()/self.scale ))
+    def local_grad(self, other, outgrad):
+        return outgrad/(1.0 + np.exp( - self.X.value()/self.scale ))
 
-        elif self.A.depends(other):
-            return self.A.grad(other, outgrad/(1.0 + np.exp( - self.A.value()/self.scale )))
 
-        else:
-            return np.zeros(other.shape())
+class HardReLU(Nonlinearity):
 
-    def depends(self, other):
-        return self.A == other or self.A.depends(other)
-
-    def shape(self):
-        return self.A.shape()
-
-class HardReLU(Differentiable):
-
-    def __init__(self, A):
-        self.A      = A
-        self._value = None
+    def __init__(self, X):
+        super(HardReLU, self).__init__(X)
 
     def value(self, reset=False, rng=None):
         if reset or self._value is None:
-            self._value = np.maximum(self.A.value(reset, rng=rng), 0.0)
+            self._value = np.maximum(self.X.value(reset, rng), 0.0)
         return self._value
 
-    def grad(self, other, outgrad=1.0):
-        if other == self.A:
-            return outgrad * (self.A.value() > 0)
+    def local_grad(self, other, outgrad):
+        return outgrad * (self.X.value() > 0)
 
-        elif self.A.depends(other):
-            return self.A.grad(other, outgrad * (self.A.value() > 0))
+class LogSoftMax(Nonlinearity):
 
-        else:
-            return np.zeros(other.shape())
+    def __init__(self, X, axis=1):
+        super(LogSoftMax, self).__init__(X)
+        self.axis = axis
 
-    def depends(self, other):
-        return self.A == other or self.A.depends(other)
+    def value(self, reset=False, rng=None):
+        if reset or self._value is None:
+            X = self.X.value(reset, rng)
+            self._value = X - np.expand_dims(util.logsumexp(X, axis=self.axis), axis=self.axis)
+        return self._value
 
-    def shape(self):
-        return self.A.shape()
+    def local_grad(self, other, outgrad):
+        return outgrad * (np.eye(self.X.shape()[0]) - np.exp(self.value()))

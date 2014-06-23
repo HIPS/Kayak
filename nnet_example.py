@@ -44,7 +44,7 @@ kyk_el_loss = kayak.L2Loss(kyk_out, kyk_targets)
 kyk_loss = kayak.MatSum( kyk_el_loss )
 
 # Roll in the weight regularization.
-kyk_obj = kayak.ElemAdd( kyk_loss, kayak.L2Norm(kyk_W1, scale=1.0), kayak.L2Norm(kyk_W2, scale=1.0))
+kyk_obj = kayak.ElemAdd( kyk_loss, kayak.L1Norm(kyk_W1, scale=100.0), kayak.L1Norm(kyk_W2, scale=100.0))
 
 print "W2:", kayak.util.checkgrad(kyk_W2, kyk_obj)
 print "B2:", kayak.util.checkgrad(kyk_B2, kyk_obj)

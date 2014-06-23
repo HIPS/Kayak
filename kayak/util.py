@@ -28,4 +28,6 @@ def checkgrad(input, output, epsilon=1e-4):
         
     return np.mean(np.abs((an_grad - fd_grad)/fd_grad))
             
-
+def logsumexp(X, axis=None):
+    maxes = np.max(X, axis=axis)
+    return np.log(np.sum(np.exp(X - maxes), axis=axis)) + maxes
