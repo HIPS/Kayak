@@ -34,7 +34,7 @@ weights = kayak.Parameter( 0.01*npr.randn(D, 10) )
 biases  = kayak.Parameter( 0.01*npr.randn(1, 10) )
 
 # Compute the output.
-output  = kayak.LogSoftMax( kayak.ElemAdd( kayak.MatMult( inputs, weights ), biases ) )
+output  = kayak.LogSoftMax( kayak.MatAdd( kayak.MatMult( inputs, weights ), biases ) )
 
 # Loss function.
 loss    = kayak.LogMultinomialLoss( output, targets )

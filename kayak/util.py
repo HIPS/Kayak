@@ -28,6 +28,25 @@ def checkgrad(input, output, epsilon=1e-4):
         
     return np.mean(np.abs((an_grad - fd_grad)/(fd_grad+np.finfo(float).eps)))
             
+def broadcast(shape1, shape2):
+    if len(shape1) != len(shape2):
+        # Return None for failure.
+        return None
+    else:
+        shape = []
+        for ii, dim1 in enumerate(shape1):
+            dim2 = shape2[ii]
+            
+            if dim1 == dim2:
+                shape.append(dim1)
+            elif (dim1 is None or dim1 > 1) and dim2 == 1:
+                shape.append(dim1)
+            elif (dim2 is None or dim2 > 1) and dim1 == 1:
+                shape.append(dim2)
+            else:
+                return None
+        return tuple(shape)
+
 def logsumexp(X, axis=None):
     maxes = np.expand_dims(np.max(X, axis=axis), axis=axis)
     return np.expand_dims(np.log(np.sum(np.exp(X - maxes), axis=axis)), axis=axis) + maxes

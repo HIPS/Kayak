@@ -1,5 +1,6 @@
-from . import Differentiable
+import numpy as np
 
+from . import Differentiable
 
 class Constant(Differentiable):
 
@@ -10,18 +11,13 @@ class Constant(Differentiable):
         return self._value
 
     def grad(self, other):
-        return Zeros(other.shape())
+        return np.zeros(other.shape())
 
     def depends(self, other):
         return self == other
 
     def shape(self):
         return self._value.shape
-
-class Zeros(Constant):
-
-    def __init__(self, shape):
-        super(Zeros, self).__init__(np.zeros(shape))
 
 class Parameter(Constant):
 

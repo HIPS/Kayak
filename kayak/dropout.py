@@ -5,10 +5,10 @@ from . import Differentiable
 
 class Dropout(Differentiable):
 
-    def __init__(self, A, drop_prob=0.5, rng=None):
-        self.A         = A
+    def __init__(self, X, drop_prob=0.5, rng=None):
+        super(Dropout, self).__init__()
+        self.X         = X
         self.drop_prob = drop_prob
-        self._value    = None
         self._mask     = None
 
         if rng is None:
@@ -18,27 +18,27 @@ class Dropout(Differentiable):
         else:
             self.rng = rng
 
-    def value(self, reset=False, rng=None):
-        if reset or self._value is None or self._mask is None:
+    def compute_value(self, reset, rng):
+        # If someone gave us an RNG, use it and pass it on.
+        # Otherwise, use the instance-specific RNG.
+        local_rng = self.rng if rng is None else rng
+        self._mask  = local_rng.rand(*self.X.shape()) > self.drop_prob
 
-            # If someone gave us an RNG, use it and pass it on.
-            # Otherwise, use the instance-specific RNG.
-            local_rng = self.rng if rng is None else rng
-            self._mask  = local_rng.rand(*self.A.shape()) > self.drop_prob
+        return (1.0/(1.0-self.drop_prob)) * self._mask * self.X.value(reset, rng)
 
-            self._value = (1.0/(1.0-self.drop_prob)) * self._mask * self.A.value(reset, rng)
-        return self._value
+    def local_grad(self, outgrad):
+        return outgrad * self._mask * (1.0/(1.0-self.drop_prob))
 
-    def grad(self, other, outgrad=1.0):
-        if other == self.A:
-            return outgrad * self._mask * (1.0/(1.0-self.drop_prob))
-        elif self.A.depends(other):
-            return self.A.grad(other, outgrad * self._mask * (1.0/(1.0-self.drop_prob)))
+    def compute_grad(self, other, outgrad):
+        if other == self.X:
+            return self.local_grad(outgrad)
+        elif self.X.depends(other):
+            return self.X.grad(other, self.local_grad(outgrad))
         else:
-            return np.zeros(self.A.shape())
+            return np.zeros(self.X.shape())
 
     def depends(self, other):
-        return other == self.A or self.A.depends(other)
+        return other == self.X or self.X.depends(other)
 
     def shape(self):
-        return self.A.shape()
+        return self.X.shape()
