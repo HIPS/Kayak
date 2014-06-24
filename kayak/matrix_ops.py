@@ -50,7 +50,7 @@ class MatMult(Differentiable):
         return (self.A.shape()[0], self.B.shape()[1],)
 
 class MatSum(Differentiable):
-    
+     
     def __init__(self, A, axis=None):
         super(MatSum, self).__init__()
 
