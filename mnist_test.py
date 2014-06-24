@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 import cPickle      as pkl
 import numpy        as np
 import numpy.random as npr
@@ -46,6 +47,7 @@ objective = kayak.MatSum( loss )
 #print "biases: ", kayak.util.checkgrad(biases, objective)
 
 for epoch in xrange(num_epochs):
+    t0 = time.time()
     overall = 0.0
     for batch in batcher:
         overall += objective.value(True)
@@ -54,6 +56,6 @@ for epoch in xrange(num_epochs):
 
         weights.add( -learn_rate * grad_weights )
         biases.add( -learn_rate * grad_biases )
-    print overall
+    print overall, time.time() - t0
 
 
