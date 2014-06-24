@@ -150,10 +150,3 @@ class MatAdd(Differentiable):
 
     def shape(self):
         return util.broadcast(self.A.shape(), self.B.shape())
-
-
-###############################################################################
-
-def do_test():
-    print "STUFF"
-    assert 'b' == 'b'

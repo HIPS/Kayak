@@ -5,7 +5,7 @@ from . import Differentiable
 class Constant(Differentiable):
 
     def __init__(self, val):
-        self._value = val
+        self._value = np.atleast_1d(val)
 
     def value(self, reset=False, rng=None):
         return self._value
