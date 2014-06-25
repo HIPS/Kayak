@@ -1,8 +1,9 @@
+import numpy as np
 
 class Targets(object):
 
     def __init__(self, Y, batcher=None):
-        self.data = Y # Assume NxP
+        self.data    = np.atleast_1d(Y)
         self.batcher = batcher
 
     def value(self, reset=False, rng=None):

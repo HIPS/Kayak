@@ -1,8 +1,9 @@
+import numpy as np
 
 class Inputs(object):
 
     def __init__(self, X, batcher=None):
-        self.data    = X # Assume NxD
+        self.data    = np.atleast_1d(X)
         self.batcher = batcher
 
     def value(self, reset=False, rng=None):

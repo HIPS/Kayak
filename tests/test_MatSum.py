@@ -12,7 +12,7 @@ def test_scalar_value():
         X = kayak.Parameter( npX )
         Y = kayak.MatSum(X)
 
-        # Verify that a scalar is reproducted.
+        # Verify that a scalar is reproduced.
         assert close_float(Y.value(True), npX)
 
 def test_scalar_grad():
