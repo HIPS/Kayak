@@ -6,7 +6,7 @@ class Regularizer(Differentiable):
 
     def __init__(self, X, weight):
         super(Regularizer, self).__init__()
-        self.X = X
+        self.X      = X
         self.weight = weight
 
     def compute_grad(self, other, outgrad):
@@ -25,7 +25,7 @@ class Regularizer(Differentiable):
 
 class L2Norm(Regularizer):
 
-    def __init__(self, X, weight):
+    def __init__(self, X, weight=1.0):
         super(L2Norm, self).__init__(X, weight)
 
     def compute_value(self, reset, rng):
@@ -36,18 +36,18 @@ class L2Norm(Regularizer):
 
 class L1Norm(Regularizer):
 
-    def __init__(self, X, weight):
+    def __init__(self, X, weight=1.0):
         super(L1Norm, self).__init__(X, weight)
 
     def compute_value(self, reset, rng):
         return self.weight * np.sum(np.abs(self.X.value(reset, rng)))
 
     def local_grad(self, outgrad):
-        return weight * np.sign(self.X.value()) * outgrad
+        return self.weight * np.sign(self.X.value()) * outgrad
 
 class Horseshoe(Differentiable):
 
-    def __init__(self, X, weight):
+    def __init__(self, X, weight=1.0):
         super(Horseshoe, self).__init__(X, weight)
 
     def compute_value(self, reset, rng):
@@ -59,7 +59,7 @@ class Horseshoe(Differentiable):
 
 class NExp(Differentiable):
 
-    def __init__(self, A, weight):
+    def __init__(self, A, weight=1.0):
         super(NExp, self).__init__(X, weight)
 
     def compute_value(self, reset, rng):
