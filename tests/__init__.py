@@ -1,4 +1,8 @@
 import numpy as np
 
+MAX_FLOAT_DIFF = 1e-9
+MAX_GRAD_DIFF  = 1e-6
+NUM_TRIALS     = 10
+
 def close_float(A, B):
-    return np.abs(A-B) < 1e-9
+    return np.abs(A-B) < MAX_FLOAT_DIFF

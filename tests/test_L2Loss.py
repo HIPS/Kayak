@@ -1,8 +1,9 @@
 import numpy        as np
 import numpy.random as npr
 
-from .  import close_float
-from .. import kayak
+import kayak
+
+from . import *
 
 def test_scalar_value():
     npr.seed(1)

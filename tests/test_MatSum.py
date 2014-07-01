@@ -1,13 +1,14 @@
 import numpy        as np
 import numpy.random as npr
 
-from .  import close_float
-from .. import kayak
+import kayak
+
+from . import *
 
 def test_scalar_value():
     npr.seed(1)
 
-    for ii in xrange(100):
+    for ii in xrange(NUM_TRIALS):
         npX = npr.randn()
         X = kayak.Parameter( npX )
         Y = kayak.MatSum(X)
@@ -18,7 +19,7 @@ def test_scalar_value():
 def test_scalar_grad():
     npr.seed(2)
 
-    for ii in xrange(100):
+    for ii in xrange(NUM_TRIALS):
         npX = npr.randn()
         X = kayak.Parameter( npX )
         Y = kayak.MatSum(X)
@@ -26,12 +27,12 @@ def test_scalar_grad():
         # Verify that the gradient is one.
         Y.value(True)
         assert Y.grad(X) == 1.0
-        assert kayak.util.checkgrad(X, Y) < 1e-6
+        assert kayak.util.checkgrad(X, Y) < MAX_GRAD_DIFF
 
 def test_vector_value_1():
     npr.seed(3)
 
-    for ii in xrange(100):
+    for ii in xrange(NUM_TRIALS):
         npX = npr.randn(10,1)
         X = kayak.Parameter( npX )
         Y = kayak.MatSum(X)
@@ -42,7 +43,7 @@ def test_vector_value_1():
 def test_vector_grad_1():
     npr.seed(4)
 
-    for ii in xrange(100):
+    for ii in xrange(NUM_TRIALS):
         npX = npr.randn(10,1)
         X = kayak.Parameter( npX )
         Y = kayak.MatSum(X)
@@ -51,12 +52,12 @@ def test_vector_grad_1():
         Y.value(True)
         assert Y.grad(X).shape == npX.shape
         assert np.all(close_float(Y.grad(X), np.ones(npX.shape)))
-        assert kayak.util.checkgrad(X, Y) < 1e-6
+        assert kayak.util.checkgrad(X, Y) < MAX_GRAD_DIFF
 
 def test_vector_value_2():
     npr.seed(5)
 
-    for ii in xrange(100):
+    for ii in xrange(NUM_TRIALS):
         npX = npr.randn(1,10)
         X = kayak.Parameter( npX )
         Y = kayak.MatSum(X)
@@ -67,7 +68,7 @@ def test_vector_value_2():
 def test_vector_grad_2():
     npr.seed(6)
 
-    for ii in xrange(100):
+    for ii in xrange(NUM_TRIALS):
         npX = npr.randn(1,10)
         X = kayak.Parameter( npX )
         Y = kayak.MatSum(X)
@@ -76,12 +77,12 @@ def test_vector_grad_2():
         Y.value(True)
         assert Y.grad(X).shape == npX.shape
         assert np.all(close_float(Y.grad(X), np.ones(npX.shape)))
-        assert kayak.util.checkgrad(X, Y) < 1e-6
+        assert kayak.util.checkgrad(X, Y) < MAX_GRAD_DIFF
 
 def test_matrix_value():
     npr.seed(7)
 
-    for ii in xrange(100):
+    for ii in xrange(NUM_TRIALS):
         npX = npr.randn(10,20)
         X   = kayak.Parameter( npX )
         Y   = kayak.MatSum(X)
@@ -92,7 +93,7 @@ def test_matrix_value():
 def test_matrix_grad():
     npr.seed(8)
 
-    for ii in xrange(100):
+    for ii in xrange(NUM_TRIALS):
         npX = npr.randn(10,20)
         X   = kayak.Parameter( npX )
         Y   = kayak.MatSum(X)
@@ -101,12 +102,12 @@ def test_matrix_grad():
         Y.value(True)
         assert Y.grad(X).shape == npX.shape
         assert np.all(close_float(Y.grad(X), np.ones(npX.shape)))
-        assert kayak.util.checkgrad(X, Y) < 1e-6
+        assert kayak.util.checkgrad(X, Y) < MAX_GRAD_DIFF
 
 def test_nested_value_1():
     npr.seed(9)
 
-    for ii in xrange(100):
+    for ii in xrange(NUM_TRIALS):
         npX = npr.randn(10,20)
         X   = kayak.Parameter( npX )
         Y   = kayak.MatSum(X, axis=0)
@@ -118,7 +119,7 @@ def test_nested_value_1():
 def test_nested_grad_1():
     npr.seed(10)
 
-    for ii in xrange(100):
+    for ii in xrange(NUM_TRIALS):
         npX = npr.randn(10,20)
         X   = kayak.Parameter( npX )
         Y   = kayak.MatSum(X, axis=0)
@@ -126,12 +127,12 @@ def test_nested_grad_1():
 
         assert Z.grad(X).shape == npX.shape
         assert np.all(close_float(Z.grad(X), np.ones(npX.shape)))
-        assert kayak.util.checkgrad(X, Z) < 1e-6
+        assert kayak.util.checkgrad(X, Z) < MAX_GRAD_DIFF
 
 def test_nested_value_2():
     npr.seed(11)
 
-    for ii in xrange(100):
+    for ii in xrange(NUM_TRIALS):
         npX = npr.randn(10,20)
         X   = kayak.Parameter( npX )
         Y   = kayak.MatSum(X, axis=1)
@@ -143,7 +144,7 @@ def test_nested_value_2():
 def test_nested_grad_2():
     npr.seed(12)
 
-    for ii in xrange(100):
+    for ii in xrange(NUM_TRIALS):
         npX = npr.randn(10,20)
         X   = kayak.Parameter( npX )
         Y   = kayak.MatSum(X, axis=1)
@@ -151,12 +152,12 @@ def test_nested_grad_2():
 
         assert Z.grad(X).shape == npX.shape
         assert np.all(close_float(Z.grad(X), np.ones(npX.shape)))
-        assert kayak.util.checkgrad(X, Z) < 1e-6
+        assert kayak.util.checkgrad(X, Z) < MAX_GRAD_DIFF
 
 def test_tensor_value_1():
     npr.seed(13)
 
-    for ii in xrange(100):
+    for ii in xrange(NUM_TRIALS):
         npX = npr.randn(10,20,30)
         X   = kayak.Parameter( npX )
         Y   = kayak.MatSum(X)
@@ -167,7 +168,7 @@ def test_tensor_value_1():
 def test_tensor_value_2():
     npr.seed(14)
 
-    for ii in xrange(100):
+    for ii in xrange(NUM_TRIALS):
         npX = npr.randn(10,20,30)
         X   = kayak.Parameter( npX )
         Y   = kayak.MatSum(X, axis=2)
@@ -177,7 +178,7 @@ def test_tensor_value_2():
 def test_tensor_value_3():
     npr.seed(15)
 
-    for ii in xrange(100):
+    for ii in xrange(NUM_TRIALS):
         npX = npr.randn(10,20,30)
         X   = kayak.Parameter( npX )
         Y   = kayak.MatSum(X, axis=1)
@@ -187,7 +188,7 @@ def test_tensor_value_3():
 def test_tensor_value_4():
     npr.seed(16)
 
-    for ii in xrange(100):
+    for ii in xrange(NUM_TRIALS):
         npX = npr.randn(10,20,30)
         X   = kayak.Parameter( npX )
         Y   = kayak.MatSum(X, axis=0)
