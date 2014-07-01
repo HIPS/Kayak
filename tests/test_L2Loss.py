@@ -8,7 +8,7 @@ from . import *
 def test_scalar_value():
     npr.seed(1)
 
-    for ii in xrange(100):
+    for ii in xrange(NUM_TRIALS):
         np_pred = npr.randn()
         np_targ = npr.randn()
         
@@ -22,7 +22,7 @@ def test_scalar_value():
 def test_scalar_grad():
     npr.seed(2)
 
-    for ii in xrange(100):
+    for ii in xrange(NUM_TRIALS):
         np_pred = npr.randn()
         np_targ = npr.randn()
         
@@ -36,7 +36,7 @@ def test_scalar_grad():
 def test_vector_value():
     npr.seed(3)
 
-    for ii in xrange(100):
+    for ii in xrange(NUM_TRIALS):
         np_pred = npr.randn(10,1)
         np_targ = npr.randn(10,1)
         
@@ -49,7 +49,7 @@ def test_vector_value():
 def test_vector_grad():
     npr.seed(4)
 
-    for ii in xrange(100):
+    for ii in xrange(NUM_TRIALS):
         np_pred = npr.randn(10,1)
         np_targ = npr.randn(10,1)
         
@@ -63,7 +63,7 @@ def test_vector_grad():
 def test_matrix_value_1():
     npr.seed(5)
 
-    for ii in xrange(100):
+    for ii in xrange(NUM_TRIALS):
         np_pred = npr.randn(10,20)
         np_targ = npr.randn(10,20)
         
@@ -77,7 +77,7 @@ def test_matrix_value_1():
 def test_matrix_grad():
     npr.seed(6)
 
-    for ii in xrange(100):
+    for ii in xrange(NUM_TRIALS):
         np_pred = npr.randn(10,20)
         np_targ = npr.randn(10,20)
         
@@ -91,7 +91,7 @@ def test_matrix_grad():
 def test_matrix_value_2():
     npr.seed(7)
 
-    for ii in xrange(100):
+    for ii in xrange(NUM_TRIALS):
         np_pred = npr.randn(10,20)
         np_targ = npr.randn(10,20)
         
@@ -105,7 +105,7 @@ def test_matrix_value_2():
 def test_matrix_value_3():
     npr.seed(8)
 
-    for ii in xrange(100):
+    for ii in xrange(NUM_TRIALS):
         np_pred = npr.randn(10,20)
         np_targ = npr.randn(10,20)
         
