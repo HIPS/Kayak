@@ -1,6 +1,7 @@
 import numpy as np
 
 from . import Differentiable
+import matrix_ops
 
 class Elementwise(Differentiable):
 
@@ -14,3 +15,5 @@ class Elementwise(Differentiable):
     def depends(self, other):
         return self.X == other or self.X.depends(other)
 
+# Just an alias for matrix addition.
+ElemAdd = matrix_ops.MatAdd

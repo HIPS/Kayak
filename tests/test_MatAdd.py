@@ -177,3 +177,57 @@ def test_matadd_grad_4():
         assert D.grad(B).shape == np_B.shape
         assert kayak.util.checkgrad(A, D) < MAX_GRAD_DIFF
         assert kayak.util.checkgrad(B, D) < MAX_GRAD_DIFF
+
+def test_matadd_grad_5():
+    npr.seed(12)
+
+    for ii in xrange(NUM_TRIALS):
+        
+        np_A = npr.randn(5,1)
+        np_B = npr.randn(1,6)
+        A    = kayak.Parameter(np_A)
+        B    = kayak.Parameter(np_B)
+        C    = kayak.MatAdd(A, B)
+        D    = kayak.MatSum(C)
+
+        D.value(True)
+        assert D.grad(A).shape == np_A.shape
+        assert D.grad(B).shape == np_B.shape
+        assert kayak.util.checkgrad(A, D) < MAX_GRAD_DIFF
+        assert kayak.util.checkgrad(B, D) < MAX_GRAD_DIFF
+
+def test_matadd_grad_6():
+    npr.seed(13)
+
+    for ii in xrange(NUM_TRIALS):
+        
+        np_A = npr.randn(5,6)
+        np_B = npr.randn(1,1)
+        A    = kayak.Parameter(np_A)
+        B    = kayak.Parameter(np_B)
+        C    = kayak.MatAdd(A, B)
+        D    = kayak.MatSum(C)
+
+        D.value(True)
+        assert D.grad(A).shape == np_A.shape
+        assert D.grad(B).shape == np_B.shape
+        assert kayak.util.checkgrad(A, D) < MAX_GRAD_DIFF
+        assert kayak.util.checkgrad(B, D) < MAX_GRAD_DIFF
+
+def test_matadd_grad_7():
+    npr.seed(14)
+
+    for ii in xrange(NUM_TRIALS):
+        
+        np_A = npr.randn(5,6)
+        np_B = npr.randn(5,6)
+        A    = kayak.Parameter(np_A)
+        B    = kayak.Parameter(np_B)
+        D    = kayak.MatAdd(A, B, A)
+        E    = kayak.MatSum(D)
+
+        E.value(True)
+        assert E.grad(A).shape == np_A.shape
+        assert E.grad(B).shape == np_B.shape
+        assert kayak.util.checkgrad(A, E) < MAX_GRAD_DIFF
+        assert kayak.util.checkgrad(B, E) < MAX_GRAD_DIFF

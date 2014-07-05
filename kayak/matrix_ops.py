@@ -121,29 +121,19 @@ class MatAdd(Differentiable):
         if outgrad is None:
             outgrad = np.ones(broadcast(self.A.shape(), self.B.shape()))
 
+        gradient = np.zeros(other.shape())
+
         if other == self.A:
-            return self.local_grad_A(outgrad)
+            gradient += self.local_grad_A(outgrad)
+        elif self.A.depends(other):
+            gradient += self.A.grad(other, self.local_grad_A(outgrad))
 
-        elif other == self.B:
-            return self.local_grad_B(outgrad)
+        if other == self.B:
+            gradient += self.local_grad_B(outgrad)
+        elif self.B.depends(other):
+            gradient += self.B.grad(other, self.local_grad_B(outgrad))
 
-        else:
-
-            dep_A = self.A.depends(other)
-            dep_B = self.B.depends(other)
-
-            if dep_A and dep_B:
-                return (self.A.grad(other, self.local_grad_A(outgrad))
-                        + self.B.grad(other, self.local_grad_B(outgrad)))
-
-            elif dep_A:
-                return self.A.grad(other, self.local_grad_A(outgrad))
-
-            elif dep_B:
-                return self.B.grad(other, self.local_grad_B(outgrad))
-
-            else:
-                return np.zeros(other.shape())
+        return gradient
 
     def depends(self, other):
         return other == self.A or other == self.B or self.A.depends(other) or self.B.depends(other)
