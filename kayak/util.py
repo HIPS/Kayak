@@ -2,6 +2,8 @@ import numpy        as np
 import numpy.random as npr
 import itertools    as it
 
+from . import EPSILON
+
 from constants import Parameter
 
 def checkgrad(input, output, epsilon=1e-4):
@@ -10,8 +12,6 @@ def checkgrad(input, output, epsilon=1e-4):
 
     # Need to make sure all evals have the same random number generation.
     rng_seed = 1
-
-    small_const = 1e-15
 
     value   = output.value(True, rng=npr.RandomState(rng_seed))
     an_grad = output.grad(input)
@@ -28,7 +28,7 @@ def checkgrad(input, output, epsilon=1e-4):
 
         #print in_dims, (an_grad[in_dims] - fd_grad[in_dims])/np.abs(fd_grad[in_dims]), an_grad[in_dims], fd_grad[in_dims]
         
-    return np.mean(np.abs((an_grad - fd_grad)/(fd_grad+small_const)))
+    return np.mean(np.abs((an_grad - fd_grad)/(fd_grad+EPSILON)))
             
 def broadcast(shape1, shape2):
     if len(shape1) != len(shape2):

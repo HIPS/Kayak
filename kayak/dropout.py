@@ -1,7 +1,7 @@
 import numpy        as np
 import numpy.random as npr
 
-from . import Differentiable
+from . import Differentiable, EPSILON
 
 class Dropout(Differentiable):
 
@@ -24,10 +24,10 @@ class Dropout(Differentiable):
         local_rng = self.rng if rng is None else rng
         self._mask  = local_rng.rand(*self.X.shape()) > self.drop_prob
 
-        return (1.0/(1.0-self.drop_prob)) * self._mask * self.X.value(reset, rng)
+        return ((1.0+EPSILON)/(1.0-self.drop_prob+EPSILON)) * self._mask * self.X.value(reset, rng)
 
     def local_grad(self, outgrad):
-        return outgrad * self._mask * (1.0/(1.0-self.drop_prob))
+        return outgrad * self._mask * ((1.0 + EPSILON)/(1.0-self.drop_prob + EPSILON))
 
     def compute_grad(self, other, outgrad):
         if other == self.X:

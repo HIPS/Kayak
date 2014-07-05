@@ -98,9 +98,9 @@ class MatAdd(Differentiable):
 
         # Recurse to handle lists of arguments.
         if len(args) > 0:
-            B = ElemAdd(B, *args)
+            B = MatAdd(B, *args)
         
-        if util.broadcast(A.shape(), B.shape()) is None:
+        if broadcast(A.shape(), B.shape()) is None:
             raise Exception("Matrices are not broadcastable: %s vs %s" % (A.shape(), B.shape()))
 
         self.A = A
@@ -119,7 +119,7 @@ class MatAdd(Differentiable):
 
     def compute_grad(self, other, outgrad):
         if outgrad is None:
-            outgrad = np.ones(util.broadcast(self.A.shape(), self.B.shape()))
+            outgrad = np.ones(broadcast(self.A.shape(), self.B.shape()))
 
         if other == self.A:
             return self.local_grad_A(outgrad)
@@ -149,4 +149,4 @@ class MatAdd(Differentiable):
         return other == self.A or other == self.B or self.A.depends(other) or self.B.depends(other)
 
     def shape(self):
-        return util.broadcast(self.A.shape(), self.B.shape())
+        return broadcast(self.A.shape(), self.B.shape())

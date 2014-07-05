@@ -1,20 +1,26 @@
+import sys
+import hashlib
+import numpy as np
+
+EPSILON = sys.float_info.epsilon
 
 class Differentiable(object):
 
     def __init__(self):
         self._value = None
-        self._grad  = None
+        self._grad  = {}
 
     def value(self, reset=False, rng=None):
         if reset or self._value is None:
             self._value = self.compute_value(reset, rng)
-            self._grad  = None
+            self._grad  = {}
         return self._value
 
     def grad(self, other, outgrad=1.0):
-        if self._grad is None:
-            self._grad = self.compute_grad(other, outgrad)
-        return self._grad
+        outgrad_hash = int(hashlib.sha1(np.atleast_1d(outgrad).view(np.uint8)).hexdigest(), 16)
+        if not self._grad.has_key((other,outgrad_hash)):
+            self._grad[(other,outgrad_hash)] = self.compute_grad(other, outgrad)
+        return self._grad[(other,outgrad_hash)]
 
     def compute_value(self, other):
         raise Exception("Class 'Differentiable' is abstract.")
