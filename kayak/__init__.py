@@ -28,7 +28,7 @@ class Differentiable(object):
     def compute_grad(self, other):
         raise Exception("Class 'Differentiable' is abstract.")
 
-    def local_grad(self, other):
+    def local_grad(self, outgrad):
         raise Exception("Class 'Differentiable' is abstract.")
 
     def depends(self, other):

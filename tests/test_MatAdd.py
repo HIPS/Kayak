@@ -231,3 +231,18 @@ def test_matadd_grad_7():
         assert E.grad(B).shape == np_B.shape
         assert kayak.util.checkgrad(A, E) < MAX_GRAD_DIFF
         assert kayak.util.checkgrad(B, E) < MAX_GRAD_DIFF
+
+def test_matadd_grad_8():
+    npr.seed(15)
+
+    for ii in xrange(NUM_TRIALS):
+        
+        np_A = npr.randn(5,6)
+        np_B = npr.randn(5,6)
+        A    = kayak.Parameter(np_A)
+        D    = kayak.MatAdd(A, A)
+        E    = kayak.MatSum(D)
+
+        E.value(True)
+        assert E.grad(A).shape == np_A.shape
+        assert kayak.util.checkgrad(A, E) < MAX_GRAD_DIFF

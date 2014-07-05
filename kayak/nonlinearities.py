@@ -12,7 +12,7 @@ class Nonlinearity(Differentiable):
 
     def compute_grad(self, other, outgrad=1.0):
         if other == self.X:
-            return self.local_grad(other, outgrad)
+            return self.local_grad(outgrad)
         elif self.X.depends(other):
             return self.X.grad(other, self.local_grad(outgrad))
         else:
@@ -34,7 +34,7 @@ class SoftReLU(Nonlinearity):
     def compute_value(self, reset=False, rng=None):
         return np.log(1.0 + np.exp( self.X.value(reset, rng)/self.scale ))*self.scale
 
-    def local_grad(self, other, outgrad):
+    def local_grad(self, outgrad):
         return outgrad/(1.0 + np.exp( - self.X.value()/self.scale ))
 
 
@@ -46,7 +46,7 @@ class HardReLU(Nonlinearity):
     def compute_value(self, reset=False, rng=None):
         return np.maximum(self.X.value(reset, rng), 0.0)
 
-    def local_grad(self, other, outgrad):
+    def local_grad(self, outgrad):
         return outgrad * (self.X.value() > 0)
 
 class LogSoftMax(Nonlinearity):
@@ -59,5 +59,5 @@ class LogSoftMax(Nonlinearity):
         X = self.X.value(reset, rng)
         return X - util.logsumexp(X, axis=self.axis)
 
-    def local_grad(self, other, outgrad):
+    def local_grad(self, outgrad):
         return outgrad - (np.exp(self.value()) * np.expand_dims(np.sum(outgrad, axis=self.axis), axis=self.axis))

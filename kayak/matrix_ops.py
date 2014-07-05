@@ -5,8 +5,12 @@ from util     import broadcast
 
 class MatMult(Differentiable):
 
-    def __init__(self, A, B):
+    def __init__(self, A, B, *args):
         super(MatMult, self).__init__()
+
+        # Recurse to handle lists of arguments.
+        if len(args) > 0:
+            B = MatMult(B, *args)
 
         if A.shape()[1] != B.shape()[0]:
             raise Exception("Cannot multiply %s by %s matrices." % (A.shape(), B.shape()))
@@ -24,24 +28,19 @@ class MatMult(Differentiable):
         return np.dot(self.A.value().T, outgrad)
 
     def compute_grad(self, other, outgrad):
+        gradient = np.zeros(other.shape())
+
         if other == self.A:
-            return self.local_grad_A(outgrad)
-        elif other == self.B:
-            return self.local_grad_B(outgrad)
-        else:
+            gradient += self.local_grad_A(outgrad)
+        elif self.A.depends(other):
+            gradient += self.A.grad(other, self.local_grad_A(outgrad))
 
-            dep_A = self.A.depends(other)
-            dep_B = self.B.depends(other)
+        if other == self.B:
+            gradient += self.local_grad_B(outgrad)
+        elif self.B.depends(other):
+            gradient += self.B.grad(other, self.local_grad_B(outgrad))
 
-            if dep_A and dep_B:
-                return (self.A.grad(other, self.local_grad_A(outgrad))
-                        + self.B.grad(other, self.local_grad_B(outgrad)))
-            elif dep_A:
-                return self.A.grad(other, self.local_grad_A(outgrad))
-            elif dep_B:
-                return self.B.grad(other, self.local_grad_B(outgrad))
-            else:
-                return np.zeros(other.shape())
+        return gradient
 
     def depends(self, other):
         return other == self.A or other == self.B or self.A.depends(other) or self.B.depends(other)
