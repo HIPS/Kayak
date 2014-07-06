@@ -32,7 +32,13 @@ class SoftReLU(Nonlinearity):
         self.scale  = scale
 
     def compute_value(self, reset=False, rng=None):
-        return np.log(1.0 + np.exp( self.X.value(reset, rng)/self.scale ))*self.scale
+        X = self.X.value(reset, rng)
+        se = np.seterr(over='ignore')
+        exp_X  = np.exp(X / self.scale)
+        result = np.log(1.0 + np.exp( X/self.scale ))*self.scale
+        over   = np.isinf(exp_X)
+        result[over] = X[over]/self.scale
+        return result
 
     def local_grad(self, outgrad):
         return outgrad/(1.0 + np.exp( - self.X.value()/self.scale ))

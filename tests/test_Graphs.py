@@ -1,3 +1,4 @@
+import sys
 import numpy        as np
 import numpy.random as npr
 
@@ -6,6 +7,8 @@ import kayak
 from . import *
 
 def test_graph_chain():
+    npr.seed(1)
+
     N  = 10
     D  = 5
     H1 = 6
@@ -28,6 +31,8 @@ def test_graph_chain():
     assert kayak.util.checkgrad(W3, out) < MAX_GRAD_DIFF
 
 def test_graph_diamond():
+    npr.seed(2)
+
     N  = 10
     D  = 5
     H1 = 6
@@ -53,6 +58,43 @@ def test_graph_diamond():
     assert kayak.util.checkgrad(W2b, out) < MAX_GRAD_DIFF
     assert kayak.util.checkgrad(W3, out) < MAX_GRAD_DIFF
 
+def test_graph_dag():
+    npr.seed(3)
 
+    num_layers = 7
+    num_dims   = 5
+    
+    for ii in xrange(NUM_TRIALS):
+        probs = npr.rand()
+
+        X = kayak.Inputs(npr.randn(25,num_dims))
+
+        wts    = []
+        layers = []
+        for jj in xrange(num_layers):
+
+            U = kayak.Constant(np.zeros((25,num_dims)))
+
+            if npr.rand() < probs:
+                W = kayak.Parameter(0.1*npr.randn(num_dims, num_dims))
+                wts.append(W)
+                U = kayak.MatAdd( U, kayak.SoftReLU(kayak.MatMult(X, W)) )
+
+            for kk in xrange(jj):
+                if npr.rand() < probs:
+                    W = kayak.Parameter(0.1*npr.randn(num_dims, num_dims))
+                    wts.append(W)
+                    U = kayak.MatAdd( U, kayak.SoftReLU(kayak.MatMult(layers[kk], W)) )
+            
+            layers.append(U)
+            
+        out = kayak.MatSum(layers[-1])
+
+        out.value(True)
+        for jj, wt in enumerate(wts):
+            diff = kayak.util.checkgrad(wt, out, 1e-4)
+            print diff
+            assert diff < 1e-4
+        
 
     
