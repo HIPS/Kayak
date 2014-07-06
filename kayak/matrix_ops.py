@@ -66,7 +66,7 @@ class MatSum(Differentiable):
             return np.sum(A_val).reshape([1] * len(A_val.shape))
         else:
             # Handle a sum and reexpansion over one dimension.
-            return np.expand_dims(np.sum(self.A.value(reset, rng=rng), axis=self.axis), axis=self.axis)
+            return np.expand_dims(np.sum(self.A.value(reset, rng), axis=self.axis), axis=self.axis)
 
     def local_grad(self, outgrad):
         return outgrad * np.ones(self.A.shape())
@@ -139,3 +139,78 @@ class MatAdd(Differentiable):
 
     def shape(self):
         return broadcast(self.A.shape(), self.B.shape())
+
+class MatDet(Differentiable):
+    pass
+
+class MatLogDet(Differentiable):
+    pass
+
+class MatTrace(Differentiable):
+    pass
+
+class Transpose(Differentiable):
+
+    def __init__(self, A, axes=None):
+        super(Transpose, self).__init__()
+
+        self.A    = A
+        self.axes = axes
+
+    def compute_value(self, reset, rng):
+        return np.transpose(self.A.value(reset, rng), axes=self.axes)
+
+    def local_grad(self, outgrad):
+        if self.axes is None:
+            return np.transpose(outgrad)
+        else:
+            return np.transpose(outgrad, axes=np.argsort(self.axes))
+
+    def compute_grad(self, other, outgrad):
+        if other == self.A:
+            return self.local_grad(outgrad)
+        elif self.A.depends(other):
+            return self.A.grad(other, self.local_grad(outgrad))
+        else:
+            return np.zeros(self.A.shape())
+
+    def depends(self, other):
+        return other == self.A or self.A.depends(other)
+
+    def shape(self):
+        if self.axes is None:
+            return self.A.shape()[::-1]
+        else:
+            return tuple([self.A.shape[ii] for ii in self.axes])
+
+class Reshape(Differentiable):
+
+    def __init__(self, A, new_shape):
+        super(Reshape, self).__init__()
+
+        self.A         = A
+        self.new_shape = new_shape
+
+    def compute_value(self, reset, rng):
+        return np.reshape(self.A.value(reset, rng), self.new_shape)
+
+    def local_grad(self, outgrad):
+        return np.reshape(outgrad, self.A.shape())
+
+    def compute_grad(self, other, outgrad):
+        if other == self.A:
+            return self.local_grad(outgrad)
+        elif self.A.depends(other):
+            return self.A.grad(other, self.local_grad(outgrad))
+        else:
+            return np.zeros(self.A.shape())
+
+    def depends(self, other):
+        return other == self.A or self.A.depends(other)
+
+    def shape(self):
+        return self.new_shape
+
+class TensorMult(Differentiable):
+    pass
+       

@@ -38,7 +38,7 @@ from constants      import Constant, Parameter
 from batcher        import Batcher
 from inputs         import Inputs
 from targets        import Targets
-from matrix_ops     import MatAdd, MatMult, MatSum
+from matrix_ops     import MatAdd, MatMult, MatSum, Transpose, Reshape
 from elem_ops       import ElemAdd
 from nonlinearities import SoftReLU, HardReLU, LogSoftMax
 from losses         import L2Loss, LogMultinomialLoss

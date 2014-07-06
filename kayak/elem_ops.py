@@ -17,3 +17,9 @@ class Elementwise(Differentiable):
 
 # Just an alias for matrix addition.
 ElemAdd = matrix_ops.MatAdd
+
+class ElemExp(Elementwise):
+    pass
+
+class ElemLog(Elementwise):
+    pass
