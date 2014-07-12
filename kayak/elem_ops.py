@@ -1,3 +1,6 @@
+# Author: Ryan P. Adams <rpa@seas.harvard.edu>
+# Copyright 2014, The President and Fellows of Harvard University
+
 import numpy as np
 
 from . import Differentiable

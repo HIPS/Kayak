@@ -1,3 +1,6 @@
+# Author: Ryan P. Adams <rpa@seas.harvard.edu>
+# Copyright 2014, The President and Fellows of Harvard University
+
 import numpy as np
 
 from .        import Differentiable
@@ -18,8 +21,8 @@ class MatMult(Differentiable):
         self.A = A
         self.B = B
 
-    def compute_value(self, reset, rng):
-        return np.dot( self.A.value(reset, rng=rng), self.B.value(reset, rng=rng) )
+    def compute_value(self, reset, rng, inputs):
+        return np.dot( self.A.value(reset, rng, inputs), self.B.value(reset, rng, inputs) )
 
     def local_grad_A(self, outgrad):
         return np.dot(outgrad, self.B.value().T)
@@ -46,7 +49,10 @@ class MatMult(Differentiable):
         return other == self.A or other == self.B or self.A.depends(other) or self.B.depends(other)
 
     def shape(self):
-        return (self.A.shape()[0], self.B.shape()[1],)
+        if len(self.B.shape()) == 1:
+            return (self.A.shape()[0],)
+        else:
+            return (self.A.shape()[0], self.B.shape()[1],)
 
 class MatSum(Differentiable):
      
@@ -56,17 +62,17 @@ class MatSum(Differentiable):
         if axis is not None and type(axis) != int:
             raise Exception("Can only sum over one axis at a time.")
 
-        self.A      = A
-        self.axis   = axis
+        self.A    = A
+        self.axis = axis
 
-    def compute_value(self, reset, rng):
+    def compute_value(self, reset, rng, inputs):
         if self.axis is None:
             # Handle the sum over all elements.
-            A_val = self.A.value(reset, rng=rng)
+            A_val = self.A.value(reset, rng, inputs)
             return np.sum(A_val).reshape([1] * len(A_val.shape))
         else:
             # Handle a sum and reexpansion over one dimension.
-            return np.expand_dims(np.sum(self.A.value(reset, rng), axis=self.axis), axis=self.axis)
+            return np.expand_dims(np.sum(self.A.value(reset, rng, inputs), axis=self.axis), axis=self.axis)
 
     def local_grad(self, outgrad):
         return outgrad * np.ones(self.A.shape())
@@ -105,16 +111,22 @@ class MatAdd(Differentiable):
         self.A = A
         self.B = B
 
-    def compute_value(self, reset, rng):
-        return self.A.value(reset, rng) + self.B.value(reset, rng)
+    def compute_value(self, reset, rng, inputs):
+        return self.A.value(reset, rng, inputs) + self.B.value(reset, rng, inputs)
 
     def local_grad_A(self, outgrad):
         broadcast_axes = tuple(np.nonzero(np.array(self.A.shape())==1)[0])
-        return np.sum(outgrad, axis=broadcast_axes).reshape(self.A.shape())
+        if len(broadcast_axes) == 0:
+            return outgrad
+        else:
+            return np.sum(outgrad, axis=broadcast_axes).reshape(self.A.shape())
 
     def local_grad_B(self, outgrad):
         broadcast_axes = tuple(np.nonzero(np.array(self.B.shape())==1)[0])
-        return np.sum(outgrad, axis=broadcast_axes).reshape(self.B.shape())
+        if len(broadcast_axes) == 0:
+            return outgrad
+        else:
+            return np.sum(outgrad, axis=broadcast_axes).reshape(self.B.shape())
 
     def compute_grad(self, other, outgrad):
         if outgrad is None:
@@ -157,8 +169,8 @@ class Transpose(Differentiable):
         self.A    = A
         self.axes = axes
 
-    def compute_value(self, reset, rng):
-        return np.transpose(self.A.value(reset, rng), axes=self.axes)
+    def compute_value(self, reset, rng, inputs):
+        return np.transpose(self.A.value(reset, rng, inputs), axes=self.axes)
 
     def local_grad(self, outgrad):
         if self.axes is None:
@@ -191,8 +203,8 @@ class Reshape(Differentiable):
         self.A         = A
         self.new_shape = new_shape
 
-    def compute_value(self, reset, rng):
-        return np.reshape(self.A.value(reset, rng), self.new_shape)
+    def compute_value(self, reset, rng, inputs):
+        return np.reshape(self.A.value(reset, rng, inputs), self.new_shape)
 
     def local_grad(self, outgrad):
         return np.reshape(outgrad, self.A.shape())

@@ -1,3 +1,6 @@
+# Author: Ryan P. Adams <rpa@seas.harvard.edu>
+# Copyright 2014, The President and Fellows of Harvard University
+
 import numpy        as np
 import numpy.random as npr
 import itertools    as it
@@ -52,3 +55,11 @@ def broadcast(shape1, shape2):
 def logsumexp(X, axis=None):
     maxes = np.expand_dims(np.max(X, axis=axis), axis=axis)
     return np.expand_dims(np.log(np.sum(np.exp(X - maxes), axis=axis)), axis=axis) + maxes
+
+def onehot(T, num_labels=None):
+    if num_labels is None:
+        num_labels = np.max(T)+1
+    labels = np.zeros((T.shape[0], num_labels), dtype=bool)
+    labels[np.arange(T.shape[0], dtype=int), T] = 1
+    return labels
+

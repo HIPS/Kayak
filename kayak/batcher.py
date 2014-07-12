@@ -1,3 +1,6 @@
+# Author: Ryan P. Adams <rpa@seas.harvard.edu>
+# Copyright 2014, The President and Fellows of Harvard University
+
 import numpy        as np
 import numpy.random as npr
 
@@ -41,20 +44,19 @@ class Batcher(object):
 
         Arguments:
 
-          batch_size (int): Size of the mini-batches to produce.
+          batch_size: (Integer) Size of the mini-batches to produce.
 
-          total_size (int): Total number of data to iterate over.
+          total_size: (Integer) Total number of data to iterate over.
 
-          rng (optional): Specifies whether the mini-batches should be
-                          random or not.  If rng=None (default), then
-                          the mini-batch indices will be in numeric
-                          order, i.e., 0, 1, 2, 3, ...  If rng is an
-                          integer, that will be used as the random
-                          seed to produce a random permutation of the
-                          indices per epoch.  The parameter rng can
-                          also be a Numpy RandomState object, which
-                          will be used instead of creating another one
-                          with the specified seed.
+          rng: (None, Integer, or numpy.random.RandomState) Specifies
+               whether the mini-batches should be random or not.  If
+               rng=None (default), then the mini-batch indices will be
+               in numeric order, i.e., 0, 1, 2, 3, ...  If rng is an
+               integer, that will be used as the random seed to
+               produce a random permutation of the indices per epoch.
+               The parameter rng can also be a numpy.random
+               RandomState object, which will be used instead of
+               creating another one with the specified seed.
 
         """
         if rng is None:

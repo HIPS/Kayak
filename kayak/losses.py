@@ -1,3 +1,6 @@
+# Author: Ryan P. Adams <rpa@seas.harvard.edu>
+# Copyright 2014, The President and Fellows of Harvard University
+
 import numpy as np
 
 from . import Differentiable
@@ -8,7 +11,7 @@ class Loss(Differentiable):
         super(Loss, self).__init__()
 
         if predictions.shape() != targets.shape():
-            raise Exception("Predictions and targets have different shapes: %s vs %s" % (predictions.shape(), target.shape()))
+            raise Exception("Predictions and targets have different shapes: %s vs %s" % (predictions.shape(), targets.shape()))
 
         self.preds  = predictions
         self.targs  = targets
@@ -35,8 +38,8 @@ class L2Loss(Loss):
         super(L2Loss, self).__init__(predictions, targets)
         self.axis = axis
 
-    def compute_value(self, reset, rng):
-        return np.atleast_1d(np.sum((self.preds.value(reset, rng) - self.targs.value(reset, rng))**2, axis=self.axis))
+    def compute_value(self, reset, rng, inputs):
+        return np.atleast_1d(np.sum((self.preds.value(reset, rng, inputs) - self.targs.value(reset, rng, inputs))**2, axis=self.axis))
 
     def local_grad(self, outgrad):
         return 2 * (self.preds.value() - self.targs.value()) * outgrad
@@ -48,8 +51,8 @@ class LogMultinomialLoss(Loss):
         super(LogMultinomialLoss, self).__init__(predictions, targets)
         self.axis = axis
 
-    def compute_value(self, reset, rng):
-        return -np.atleast_1d(np.sum( self.targs.value(reset,rng) * self.preds.value(reset,rng), axis=self.axis))
+    def compute_value(self, reset, rng, inputs):
+        return -np.atleast_1d(np.sum( self.targs.value(reset, rng, inputs) * self.preds.value(reset, rng, inputs), axis=self.axis))
 
     def local_grad(self, outgrad):
         return -outgrad * self.targs.value()

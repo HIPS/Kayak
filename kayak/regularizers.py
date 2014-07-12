@@ -1,3 +1,6 @@
+# Author: Ryan P. Adams <rpa@seas.harvard.edu>
+# Copyright 2014, The President and Fellows of Harvard University
+
 import numpy as np
 
 from . import Differentiable
@@ -28,8 +31,8 @@ class L2Norm(Regularizer):
     def __init__(self, X, weight=1.0):
         super(L2Norm, self).__init__(X, weight)
 
-    def compute_value(self, reset, rng):
-        return self.weight * np.sum(self.X.value(reset, rng)**2)
+    def compute_value(self, reset, rng, inputs):
+        return self.weight * np.sum(self.X.value(reset, rng, inputs)**2)
 
     def local_grad(self, outgrad):
         return self.weight * 2.0 * self.X.value() * outgrad
@@ -39,8 +42,8 @@ class L1Norm(Regularizer):
     def __init__(self, X, weight=1.0):
         super(L1Norm, self).__init__(X, weight)
 
-    def compute_value(self, reset, rng):
-        return self.weight * np.sum(np.abs(self.X.value(reset, rng)))
+    def compute_value(self, reset, rng, inputs):
+        return self.weight * np.sum(np.abs(self.X.value(reset, rng, inputs)))
 
     def local_grad(self, outgrad):
         return self.weight * np.sign(self.X.value()) * outgrad
@@ -50,8 +53,8 @@ class Horseshoe(Regularizer):
     def __init__(self, X, weight=1.0):
         super(Horseshoe, self).__init__(X, weight)
 
-    def compute_value(self, reset, rng):
-        return -self.weight * np.sum(np.log(np.log(1.0 + self.X.value(reset, rng)**(-2))))
+    def compute_value(self, reset, rng, inputs):
+        return -self.weight * np.sum(np.log(np.log(1.0 + self.X.value(reset, rng, inputs)**(-2))))
 
     def local_grad(self, outgrad):
         return -(self.weight * outgrad * (1 / (np.log(1.0 + self.X.value()**(-2))))
@@ -62,8 +65,8 @@ class NExp(Regularizer):
     def __init__(self, X, weight=1.0):
         super(NExp, self).__init__(X, weight)
 
-    def compute_value(self, reset, rng):
-        return self.weight * np.sum(1.0 - np.exp(-np.abs(self.X.value(reset, rng))))
+    def compute_value(self, reset, rng, inputs):
+        return self.weight * np.sum(1.0 - np.exp(-np.abs(self.X.value(reset, rng, inputs))))
 
     def local_grad(self, outgrad):
         return self.weight * outgrad * np.exp(-np.abs(self.X.value())) * np.sign(self.X.value())

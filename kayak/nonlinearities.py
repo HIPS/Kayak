@@ -1,3 +1,6 @@
+# Author: Ryan P. Adams <rpa@seas.harvard.edu>
+# Copyright 2014, The President and Fellows of Harvard University
+
 import numpy as np
 
 import util
@@ -8,7 +11,7 @@ class Nonlinearity(Differentiable):
 
     def __init__(self, X):
         super(Nonlinearity, self).__init__()
-        self.X      = X
+        self.X = X
 
     def compute_grad(self, other, outgrad=1.0):
         if other == self.X:
@@ -31,12 +34,13 @@ class SoftReLU(Nonlinearity):
         super(SoftReLU, self).__init__(X)
         self.scale  = scale
 
-    def compute_value(self, reset=False, rng=None):
-        X = self.X.value(reset, rng)
-        se = np.seterr(over='ignore')
-        exp_X  = np.exp(X / self.scale)
-        result = np.log(1.0 + np.exp( X/self.scale ))*self.scale
-        over   = np.isinf(exp_X)
+    def compute_value(self, reset, rng, inputs):
+        # Somewhat complicated to handle overflow.
+        X            = self.X.value(reset, rng, inputs)
+        se           = np.seterr(over='ignore')
+        exp_X        = np.exp(X / self.scale)
+        result       = np.log(1.0 + np.exp( X/self.scale ))*self.scale
+        over         = np.isinf(exp_X)
         result[over] = X[over]/self.scale
         return result
 
@@ -49,8 +53,8 @@ class HardReLU(Nonlinearity):
     def __init__(self, X):
         super(HardReLU, self).__init__(X)
 
-    def compute_value(self, reset=False, rng=None):
-        return np.maximum(self.X.value(reset, rng), 0.0)
+    def compute_value(self, reset, rng, inputs):
+        return np.maximum(self.X.value(reset, rng, inputs), 0.0)
 
     def local_grad(self, outgrad):
         return outgrad * (self.X.value() > 0)
@@ -61,8 +65,8 @@ class LogSoftMax(Nonlinearity):
         super(LogSoftMax, self).__init__(X)
         self.axis = axis
 
-    def compute_value(self, reset=False, rng=None):
-        X = self.X.value(reset, rng)
+    def compute_value(self, reset, rng, inputs):
+        X = self.X.value(reset, rng, inputs)
         return X - util.logsumexp(X, axis=self.axis)
 
     def local_grad(self, outgrad):
