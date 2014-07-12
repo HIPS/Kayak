@@ -44,7 +44,7 @@ def train(inputs, targets):
     B    = kayak.Parameter( 0.1*npr.randn(1,10) )
 
     # Nothing fancy here: inputs times weights, plus bias, then softmax.
-    Y    = kayak.LogSoftMax( kayak.ElemAdd( kayak.MatMult(X, W), B ) )
+    Y    = kayak.LogSoftMax( kayak.ElemAdd( kayak.MatMult( kayak.Dropout(X, 0.01), W), B ) )
 
     # The training loss is negative multinomial log likelihood.
     loss = kayak.MatSum(kayak.LogMultinomialLoss(Y, T))
@@ -53,7 +53,7 @@ def train(inputs, targets):
     mom_grad_W = np.zeros(W.shape())
 
     # Loop over epochs.
-    for epoch in xrange(25):
+    for epoch in xrange(5):
 
         # Track the total loss and the overall gradient.
         total_loss   = 0.0
@@ -107,7 +107,7 @@ for ii, fold in enumerate(CV):
     pred_func = train(train_images, train_labels)
 
     # Make predictions on the validation data.
-    valid_preds = np.argmax(func( valid_images ), axis=1)
+    valid_preds = np.argmax(pred_func( valid_images ), axis=1)
 
     # How did we do?
     print np.mean(valid_preds == np.argmax(valid_labels, axis=1))

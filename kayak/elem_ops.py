@@ -12,8 +12,8 @@ class Elementwise(Differentiable):
         super(Elementwise, self).__init__()
         self.X = X
 
-    def shape(self):
-        return self.X.shape()
+    def shape(self, inputs=None):
+        return self.X.shape(inputs)
 
     def depends(self, other):
         return self.X == other or self.X.depends(other)

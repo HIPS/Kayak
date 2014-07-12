@@ -24,8 +24,8 @@ class Nonlinearity(Differentiable):
     def depends(self, other):
         return self.X == other or self.X.depends(other)
 
-    def shape(self):
-        return self.X.shape()
+    def shape(self, inputs=None):
+        return self.X.shape(inputs)
 
 
 class SoftReLU(Nonlinearity):

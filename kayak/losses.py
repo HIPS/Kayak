@@ -26,8 +26,8 @@ class Loss(Differentiable):
         else:
             return np.zeros(other.shape())
 
-    def shape(self):
-        return self.preds.shape()
+    def shape(self, inputs=None):
+        return self.preds.shape(inputs)
 
     def depends(self, other):
         return self.preds == other or self.preds.depends(other)

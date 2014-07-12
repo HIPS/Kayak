@@ -17,8 +17,10 @@ class Targets(object):
         else:
             return self.data[self.batcher.indices(),...]
 
-    def shape(self):
-        if self.batcher is None:
+    def shape(self, inputs=None):
+        if inputs is not None and inputs.has_key(self):
+            return inputs[self].shape
+        elif self.batcher is None:
             return self.data.shape
         else:
             return self.data[self.batcher.indices(),...].shape

@@ -107,6 +107,9 @@ class Differentiable(object):
     def depends(self, other):
         raise Exception("Class 'Differentiable' is abstract.")
 
+    def shape(self, inputs=None):
+        raise Exception("Class 'Differentiable' is abstract.")
+
 from constants      import Constant, Parameter
 from batcher        import Batcher
 from inputs         import Inputs

@@ -22,8 +22,11 @@ class Constant(Differentiable):
     def depends(self, other):
         return self == other
 
-    def shape(self):
-        return self._value.shape
+    def shape(self, inputs=None):
+        if inputs is not None and inputs.has_key(self):
+            return inputs[self].shape
+        else:
+            return self._value.shape
 
 class Parameter(Constant):
 

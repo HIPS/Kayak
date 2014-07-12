@@ -20,8 +20,8 @@ class Regularizer(Differentiable):
         else:
             return np.zeros(self.X.shape())
 
-    def shape(self):
-        return tuple([1] * len(self.X.shape()))
+    def shape(self, inputs=None):
+        return tuple([1] * len(self.X.shape(inputs)))
 
     def depends(self, other):
         return self.X == other or self.X.depends(other)

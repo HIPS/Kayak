@@ -25,7 +25,7 @@ class Dropout(Differentiable):
         # If someone gave us an RNG, use it and pass it on.
         # Otherwise, use the instance-specific RNG.
         local_rng = self.rng if rng is None else rng
-        self._mask  = local_rng.rand(*self.X.shape()) > self.drop_prob
+        self._mask  = local_rng.rand(*self.X.shape(inputs)) > self.drop_prob
 
         return ((1.0+EPSILON)/(1.0-self.drop_prob+EPSILON)) * self._mask * self.X.value(reset, rng, inputs)
 
@@ -43,5 +43,5 @@ class Dropout(Differentiable):
     def depends(self, other):
         return other == self.X or self.X.depends(other)
 
-    def shape(self):
-        return self.X.shape()
+    def shape(self, inputs=None):
+        return self.X.shape(inputs)

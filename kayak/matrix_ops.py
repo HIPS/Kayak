@@ -48,11 +48,11 @@ class MatMult(Differentiable):
     def depends(self, other):
         return other == self.A or other == self.B or self.A.depends(other) or self.B.depends(other)
 
-    def shape(self):
-        if len(self.B.shape()) == 1:
-            return (self.A.shape()[0],)
+    def shape(self, inputs=None):
+        if len(self.B.shape(inputs)) == 1:
+            return (self.A.shape(inputs)[0],)
         else:
-            return (self.A.shape()[0], self.B.shape()[1],)
+            return (self.A.shape(inputs)[0], self.B.shape(inputs)[1],)
 
 class MatSum(Differentiable):
      
@@ -85,11 +85,11 @@ class MatSum(Differentiable):
         else:
             return np.zeros(other.shape())
     
-    def shape(self):
+    def shape(self, inputs=None):
         if self.axis is None:
-            return tuple( [1] * len(self.A.shape()) )
+            return tuple( [1] * len(self.A.shape(inputs)) )
         else:
-            A_shape = list(self.A.shape())
+            A_shape = list(self.A.shape(inputs))
             A_shape[self.axis] = 1
             return tuple(A_shape)
 
@@ -149,8 +149,8 @@ class MatAdd(Differentiable):
     def depends(self, other):
         return other == self.A or other == self.B or self.A.depends(other) or self.B.depends(other)
 
-    def shape(self):
-        return broadcast(self.A.shape(), self.B.shape())
+    def shape(self, inputs=None):
+        return broadcast(self.A.shape(inputs), self.B.shape(inputs))
 
 class MatDet(Differentiable):
     pass
@@ -220,7 +220,7 @@ class Reshape(Differentiable):
     def depends(self, other):
         return other == self.A or self.A.depends(other)
 
-    def shape(self):
+    def shape(self, inputs=None):
         return self.new_shape
 
 class TensorMult(Differentiable):

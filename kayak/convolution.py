@@ -42,6 +42,6 @@ class Convolve1d(Differentiable):
     def depends(self, other):
         return self.A == other or self.B == other or self.A.depends(other) or self.B.depends(other)
 
-    def shape(self):
-        return self.A.shape()
+    def shape(self, inputs):
+        return self.A.shape(inputs)
 
