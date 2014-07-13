@@ -44,7 +44,7 @@ def train(inputs, targets):
     B    = kayak.Parameter( 0.1*npr.randn(1,10) )
 
     # Nothing fancy here: inputs times weights, plus bias, then softmax.
-    Y    = kayak.LogSoftMax( kayak.ElemAdd( kayak.MatMult( kayak.Dropout(X, 0.01), W), B ) )
+    Y    = kayak.LogSoftMax( kayak.ElemAdd( kayak.MatMult( kayak.Dropout(X, 0.1), W), B ) )
 
     # The training loss is negative multinomial log likelihood.
     loss = kayak.MatSum(kayak.LogMultinomialLoss(Y, T))
@@ -53,7 +53,7 @@ def train(inputs, targets):
     mom_grad_W = np.zeros(W.shape())
 
     # Loop over epochs.
-    for epoch in xrange(5):
+    for epoch in xrange(10):
 
         # Track the total loss and the overall gradient.
         total_loss   = 0.0
