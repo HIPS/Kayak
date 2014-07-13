@@ -82,8 +82,29 @@ grad_W  = loss.grad(weights)                      # Find the gradient of the tra
           </p>
 
 <h3>Automatic Differentiation</h3>
+          <p>
+          Nobody likes taking derivatives over and over again to
+          figure out what the gradient of the loss function should be.
+          This can make it slow and annoying to figure out what a good
+          architecture should be, plus it is prone to errors.  Kayak's
+          main purpose is to make this very, very easy.  You specify a
+          directed acyclic graph (DAG) of computation, as in the
+          logistic regression example above, and you can find the
+          gradient of a scalar output simply by calling the grad()
+          method, where the argument is whatever gradient you care
+          about.  It's that easy.  If you want to add a new module to
+          Kayak, you just subclass the Differentiable class and
+          implement local value and gradient computations.
+          </p>
 
-<h3>GPU and Xeon Phi Integration</h3>
+<h3>Feature Roadmap</h3>
+<ul>
+  <li>Optional Nvidia GPU integration via <a href="https://github.com/cudamat/cudamat">CUDAmat</a>.</li>
+  <li>Optional Xeon Phi integration via <a href="https://github.com/orippel/micmat">MICmat</a>.</li>
+  <li>Convolution and spatial pooling for computer vision problems.</li>
+  <li>Integration with <a href="https://github.com/JasperSnoek/spearmint">Bayesian optimization</a> for hyperparameter tuning.</li>
+  <li>Implementation of Hessian-vector products via <a href="http://www.bcl.hamilton.ie/~barak/papers/nc-hessian.pdf">Perlmutter's R-propagation</a>.</li>
+</ul>
 
 <footer>
   Kayak: Easy Deep Learning in Python is maintained by
