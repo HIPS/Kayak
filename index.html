@@ -38,9 +38,48 @@
 
         <section id="main_content">
           <h3>Easy Specification of Neural Network Architectures</h3>
-
-<pre><code>TODO
+          <p>
+          Neural networks are a powerful way to perform function
+          approximation.  They are a way to perform adaptive basis
+          function regression or classification, and have proven
+          themselves over the years to be highly effective at many
+          supervised learning tasks such as visual object recognition
+          and speech processing.  The backpropagation algorithm --
+          simply the application of the chain rule for reverse-mode
+          automatic differentiation -- makes it straightforward to
+          find the gradient of a training loss function in terms of
+          parameters, and then apply optimization procedures such as
+          stochastic gradient descent.
+          </p>
+          <p>
+          It is an active area of research, however, to determine what
+          the right neural network architecture should be for any
+          given data set. It's annoying to have to derive new
+          gradients and write new code, however.  Kayak makes this
+          easy and automatic.  Other tools do this as well,
+          notably <a href="https://github.com/Theano/Theano">Theano</a>
+          and <a href="http://torch.ch/">Torch</a>.  Kayak is almost
+          certainly slower and less featureful than these tools; it is
+          intended to be an easy-to-use alternative with low overhead,
+          using Python tools with which you are already familiar.
+          </p>
+          <p>
+          The point of Kayak is to be highly modular and allow you to
+          build neural network architectures, broadly defined, by
+          composing together simple pieces that implement both
+          ``classic'' layer mechanics such as matrix multiplication
+          and sigmoidal nonlinearities, as well as newer ideas like
+          dropout and rectified linear units.  The point is to wind up
+          with Python code that looks pretty familiar:
+<pre><code># Super easy logistic regression.
+inputs  = Inputs(train_inputs)                    # Specify training input features
+targets = Targets(train_targets)                  # Specify training target outputs
+weights = Parameter(randn(768, 10))               # Create weight parameters
+output  = LogSoftMax(MatMult(inputs, weights))    # Linear layer with softmax nonlinearity
+loss    = MatSum(LogMultinomial(output, targets)) # Negative multinomial loss function
+grad_W  = loss.grad(weights)                      # Find the gradient of the training loss in terms of the weights
 </code></pre>
+          </p>
 
 <h3>Automatic Differentiation</h3>
 
