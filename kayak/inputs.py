@@ -23,7 +23,7 @@ class Inputs(object):
         elif self.batcher is None:
             return self.data.shape
         else:
-            return self.data[self.batcher.indices(),...].shape
+            return (len(self.batcher.indices()),) + self.data[0,...].shape
 
     def grad(self, other):
         raise Exception("Not sensible to compute gradient in terms of inputs.")

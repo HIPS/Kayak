@@ -5,3 +5,5 @@ class Matrix:
 
     def __init__(self, *shape):
         self._mat = np.zeros(*shape)
+
+    

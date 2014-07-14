@@ -1,6 +1,8 @@
 # Author: Ryan P. Adams <rpa@seas.harvard.edu>
 # Copyright 2014, The President and Fellows of Harvard University
 
+#import math as m
+
 import numpy        as np
 import numpy.random as npr
 
@@ -22,12 +24,17 @@ class Dropout(Differentiable):
             self.rng = rng
 
     def compute_value(self, reset, rng, inputs):
-        # If someone gave us an RNG, use it and pass it on.
-        # Otherwise, use the instance-specific RNG.
-        local_rng = self.rng if rng is None else rng
-        self._mask  = local_rng.rand(*self.X.shape(inputs)) > self.drop_prob
+        if inputs is None:
+            # If someone gave us an RNG, use it and pass it on.
+            # Otherwise, use the instance-specific RNG.
+            local_rng = self.rng if rng is None else rng
+            self._mask  = local_rng.rand(*self.X.shape(inputs)) > self.drop_prob
 
-        return ((1.0+EPSILON)/(1.0-self.drop_prob+EPSILON)) * self._mask * self.X.value(reset, rng, inputs)
+            return ((1.0+EPSILON)/(1.0-self.drop_prob+EPSILON)) * self._mask * self.X.value(reset, rng, inputs)
+
+        else:
+            # Assume we're at test time if there are inputs.
+            return self.X.value(reset, rng, inputs)
 
     def local_grad(self, outgrad):
         return outgrad * self._mask * ((1.0 + EPSILON)/(1.0-self.drop_prob + EPSILON))
