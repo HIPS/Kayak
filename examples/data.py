@@ -6,6 +6,8 @@ import array
 import numpy as np
 
 def download(url, filename):
+    if not os.path.exists('data'):
+        os.makedirs('data')
     out_file = os.path.join('data', filename)
     if not os.path.isfile(out_file):
         urllib.urlretrieve(url, out_file)
