@@ -115,17 +115,17 @@ class MatAdd(Differentiable):
         return self.A.value(reset, rng, inputs) + self.B.value(reset, rng, inputs)
 
     def local_grad_A(self, outgrad):
-        broadcast_axes = tuple(np.nonzero(np.array(self.A.shape())==1)[0])
-        if len(broadcast_axes) == 0:
+        if np.atleast_1d(outgrad).shape == self.A.shape():
             return outgrad
         else:
+            broadcast_axes = tuple(np.nonzero(np.array(self.A.shape())==1)[0])
             return np.sum(outgrad, axis=broadcast_axes).reshape(self.A.shape())
 
     def local_grad_B(self, outgrad):
-        broadcast_axes = tuple(np.nonzero(np.array(self.B.shape())==1)[0])
-        if len(broadcast_axes) == 0:
+        if np.atleast_1d(outgrad).shape == self.B.shape():
             return outgrad
         else:
+            broadcast_axes = tuple(np.nonzero(np.array(self.B.shape())==1)[0])
             return np.sum(outgrad, axis=broadcast_axes).reshape(self.B.shape())
 
     def compute_grad(self, other, outgrad):
