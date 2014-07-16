@@ -12,7 +12,6 @@ def download(url, filename):
     if not os.path.isfile(out_file):
         urllib.urlretrieve(url, out_file)
 
-
 def mnist():
     base_url = 'http://yann.lecun.com/exdb/mnist/'
 
