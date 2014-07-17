@@ -25,10 +25,18 @@ class MatMult(Differentiable):
         return np.dot( self.A.value(reset, rng, inputs), self.B.value(reset, rng, inputs) )
 
     def local_grad_A(self, outgrad):
-        return np.dot(outgrad, self.B.value().T)
+        # Numpy is really, really bad.  Have to handle length-1 vectors differently.
+        if len(self.B.shape()) == 1:
+            return np.outer(outgrad, self.B.value())
+        else:
+            return np.dot(outgrad, self.B.value().T)
 
     def local_grad_B(self, outgrad):
-        return np.dot(self.A.value().T, outgrad)
+        # Oh Numpy, you suck so much.
+        if len(self.A.shape()) == 1:
+            return np.outer(self.A.value(), outgrad)
+        else:        
+            return np.dot(self.A.value().T, outgrad)
 
     def compute_grad(self, other, outgrad):
         gradient = np.zeros(other.shape())
@@ -114,18 +122,29 @@ class MatAdd(Differentiable):
     def compute_value(self, reset, rng, inputs):
         return self.A.value(reset, rng, inputs) + self.B.value(reset, rng, inputs)
 
+    def axes_for_sum(self, mat_shape, outgrad_shape):
+        mat_shape = list(mat_shape)
+        outgrad_shape = list(outgrad_shape)
+        to_sum = []
+        for dim, sz in enumerate(outgrad_shape[::-1]):
+            if len(mat_shape) == 0:
+                to_sum.append(len(outgrad_shape)-dim-1)
+            elif mat_shape.pop() == 1:
+                to_sum.append(len(outgrad_shape)-dim-1)
+        return tuple(to_sum[::-1])
+
     def local_grad_A(self, outgrad):
         if np.atleast_1d(outgrad).shape == self.A.shape():
             return outgrad
         else:
-            broadcast_axes = tuple(np.nonzero(np.array(self.A.shape())==1)[0])
+            broadcast_axes = self.axes_for_sum(self.A.shape(), outgrad.shape)
             return np.sum(outgrad, axis=broadcast_axes).reshape(self.A.shape())
 
     def local_grad_B(self, outgrad):
         if np.atleast_1d(outgrad).shape == self.B.shape():
             return outgrad
         else:
-            broadcast_axes = tuple(np.nonzero(np.array(self.B.shape())==1)[0])
+            broadcast_axes = self.axes_for_sum(self.B.shape(), outgrad.shape)
             return np.sum(outgrad, axis=broadcast_axes).reshape(self.B.shape())
 
     def compute_grad(self, other, outgrad):
@@ -189,11 +208,12 @@ class Transpose(Differentiable):
     def depends(self, other):
         return other == self.A or self.A.depends(other)
 
-    def shape(self):
+    def shape(self, inputs=None):
         if self.axes is None:
-            return self.A.shape()[::-1]
+            return self.A.shape(inputs)[::-1]
         else:
-            return tuple([self.A.shape[ii] for ii in self.axes])
+            shape = self.A.shape(inputs)
+            return tuple([shape[ii] for ii in self.axes])
 
 class Reshape(Differentiable):
 

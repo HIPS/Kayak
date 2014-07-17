@@ -1,7 +1,6 @@
 import sys
 import data
-import numpy        as np
-import numpy.random as npr
+import matrical as mat
 
 sys.path.append('..')
 

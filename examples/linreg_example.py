@@ -1,13 +1,16 @@
 import numpy        as np
 import numpy.random as npr
 
+import sys
+sys.path.append('..')
+
 import kayak
 
 N = 10000
 D = 5
 P = 3
 learn = 0.00001
-batch_size = 5
+batch_size = 500
 
 # Random inputs.
 X = npr.randn(N,D)
@@ -30,8 +33,7 @@ kyk_W = kayak.Parameter(W)
 kyk_out = kayak.MatMult( kyk_inputs, kyk_W )
 
 # Elementwise Loss.
-#kyk_el_loss = kayak.L2Loss(kyk_out, kyk_targets)
-kyk_el_loss = kayak.L2Loss(kyk_targets, kyk_out)
+kyk_el_loss = kayak.L2Loss(kyk_out, kyk_targets)
 
 # Sum the losses.
 kyk_loss = kayak.MatSum( kyk_el_loss )

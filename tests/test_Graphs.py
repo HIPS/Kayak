@@ -53,6 +53,10 @@ def test_graph_diamond():
     out = kayak.MatSum(kayak.MatAdd(U3a, U3b))
 
     out.value(True)
+    print kayak.util.checkgrad(W1, out)
+    print kayak.util.checkgrad(W2a, out)
+    print kayak.util.checkgrad(W2b, out)
+    print kayak.util.checkgrad(W3, out)
     assert kayak.util.checkgrad(W1, out) < MAX_GRAD_DIFF
     assert kayak.util.checkgrad(W2a, out) < MAX_GRAD_DIFF
     assert kayak.util.checkgrad(W2b, out) < MAX_GRAD_DIFF

@@ -32,25 +32,18 @@ def checkgrad(input, output, epsilon=1e-4):
         #print in_dims, (an_grad[in_dims] - fd_grad[in_dims])/np.abs(fd_grad[in_dims]), an_grad[in_dims], fd_grad[in_dims]
         
     return np.mean(np.abs((an_grad - fd_grad)/(fd_grad+EPSILON)))
-            
+
 def broadcast(shape1, shape2):
-    if len(shape1) != len(shape2):
-        # Return None for failure.
-        return None
+    shape1 = list(shape1)
+    shape2 = list(shape2)
+    d1 = 1 if len(shape1) == 0 else shape1.pop()
+    d2 = 1 if len(shape2) == 0 else shape2.pop()
+    if d1 > 1 and d2 > 1 and d1 != d2:
+        raise Exception("Invalid shapes for broadcast.")
+    if len(shape1) == 0 and len(shape2) == 0:
+        return (max(d1, d2),)
     else:
-        shape = []
-        for ii, dim1 in enumerate(shape1):
-            dim2 = shape2[ii]
-            
-            if dim1 == dim2:
-                shape.append(dim1)
-            elif (dim1 is None or dim1 > 1) and dim2 == 1:
-                shape.append(dim1)
-            elif (dim2 is None or dim2 > 1) and dim1 == 1:
-                shape.append(dim2)
-            else:
-                return None
-        return tuple(shape)
+        return tuple(list(broadcast(shape1, shape2)) + [max(d1,d2),])
 
 def logsumexp(X, axis=None):
     maxes = np.expand_dims(np.max(X, axis=axis), axis=axis)
