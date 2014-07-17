@@ -87,15 +87,18 @@ class Differentiable(object):
 
         """
 
-        return self.compute_grad(other, outgrad)
-        # THIS CACHING DOESN'T WORK
         # We need distinct gradients for different things we might
         # want to differentiate in terms of.  We cache with a
         # dictionary, but numpy objects don't have hashes by default.
-        #outgrad_hash = hash(iter(np.atleast_1d(outgrad)))
-        #if not self._grad.has_key((other,outgrad_hash)):
-        #    self._grad[(other,outgrad_hash)] = self.compute_grad(other, outgrad)
-        #return self._grad[(other,outgrad_hash)]
+
+        outgrad_hash = hash(np.atleast_1d(outgrad).tostring())
+
+        # This is pretty slow.
+        #outgrad_hash = hashlib.md5(np.atleast_1d(outgrad).view(np.uint8)).hexdigest() 
+
+        if not self._grad.has_key((other,outgrad_hash)):
+            self._grad[(other,outgrad_hash)] = self.compute_grad(other, outgrad)
+        return self._grad[(other,outgrad_hash)]
 
     def compute_value(self, reset, rng, inputs):
         raise Exception("Class 'Differentiable' is abstract.")
