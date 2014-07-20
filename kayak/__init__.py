@@ -87,11 +87,13 @@ class Differentiable(object):
 
         """
 
+        outgrad = np.atleast_1d(outgrad)
+
         # We need distinct gradients for different things we might
         # want to differentiate in terms of.  We cache with a
         # dictionary, but numpy objects don't have hashes by default.
 
-        outgrad_hash = hash(np.atleast_1d(outgrad).tostring())
+        outgrad_hash = hash(outgrad.tostring())
 
         # This is pretty slow.
         #outgrad_hash = hashlib.md5(np.atleast_1d(outgrad).view(np.uint8)).hexdigest() 

@@ -3,7 +3,7 @@ import urllib
 import gzip
 import struct
 import array
-import matrical as mat
+import numpy as np
 
 def download(url, filename):
     if not os.path.exists('data'):
@@ -18,12 +18,12 @@ def mnist():
     def parse_labels(filename):
         with gzip.open(filename, 'rb') as fh:
             magic, num_data = struct.unpack(">II", fh.read(8))
-            return mat.Matrix(array.array("B", fh.read()), dtype=mat.uint8)
+            return np.array(array.array("B", fh.read()), dtype=np.uint8)
 
     def parse_images(filename):
         with gzip.open(filename, 'rb') as fh:
             magic, num_data, rows, cols = struct.unpack(">IIII", fh.read(16))
-            return mat.Matrix(array.array("B", fh.read()), dtype=mat.uint8).reshape(num_data, rows, cols)
+            return np.array(array.array("B", fh.read()), dtype=np.uint8).reshape(num_data, rows, cols)
 
     for filename in ['train-images-idx3-ubyte.gz',
                      'train-labels-idx1-ubyte.gz',

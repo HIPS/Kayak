@@ -134,7 +134,7 @@ class MatAdd(Differentiable):
         return tuple(to_sum[::-1])
 
     def local_grad_A(self, outgrad):
-        if np.atleast_1d(outgrad).shape == self.A.shape():
+        if outgrad.shape == self.A.shape():
             return outgrad
         else:
             broadcast_axes = self.axes_for_sum(self.A.shape(), outgrad.shape)
@@ -144,7 +144,7 @@ class MatAdd(Differentiable):
         if np.atleast_1d(outgrad).shape == self.B.shape():
             return outgrad
         else:
-            broadcast_axes = self.axes_for_sum(self.B.shape(), outgrad.shape)
+            broadcast_axes = self.axes_for_sum(self.B.shape(), np.atleast_1d(outgrad).shape)
             return np.sum(outgrad, axis=broadcast_axes).reshape(self.B.shape())
 
     def compute_grad(self, other, outgrad):
