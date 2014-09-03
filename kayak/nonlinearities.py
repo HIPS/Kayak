@@ -59,6 +59,17 @@ class HardReLU(Nonlinearity):
     def local_grad(self, outgrad):
         return outgrad * (self.X.value() > 0)
 
+class TanH(Nonlinearity):
+
+    def __init__(self, X):
+        super(TanH, self).__init__(X)
+
+    def compute_value(self, reset, rng, inputs):
+        return np.tanh(self.X.value(reset, rng, inputs))
+
+    def local_grad(self, outgrad):
+        return 1.0 - np.tanh(self.X.value())**2
+
 class LogSoftMax(Nonlinearity):
 
     def __init__(self, X, axis=1):

@@ -123,7 +123,7 @@ from inputs         import Inputs
 from targets        import Targets
 from matrix_ops     import MatAdd, MatMult, MatSum, Transpose, Reshape
 from elem_ops       import ElemAdd
-from nonlinearities import SoftReLU, HardReLU, LogSoftMax
+from nonlinearities import SoftReLU, HardReLU, LogSoftMax, TanH
 from losses         import L2Loss, LogMultinomialLoss
 from dropout        import Dropout
 from regularizers   import L2Norm, L1Norm, Horseshoe, NExp
