@@ -6,6 +6,7 @@ import numpy as np
 import util
 
 from . import Differentiable
+import sys
 
 class Convolve1d(Differentiable):
 
@@ -37,11 +38,12 @@ class Convolve1d(Differentiable):
         filtersize = self.B.shape()[0]/self.ncolors
         output     = np.zeros((self.A.shape()[0], self.A.shape()[1]))
         B          = self.B.value().squeeze()
-        outgrad = outgrad.reshape(outgrad.shape[0], -1, B.shape[1])
-        for i in xrange(output.shape[1]-filtersize+1):
-            output[:,i:i+filtersize] += np.dot(outgrad[:,i,:], B.T)
+        output = output.reshape((output.shape[0], -1, self.ncolors))
+        outgrad = outgrad.reshape(outgrad.shape[0], -1, B.shape[-1])
+        for i in xrange(outgrad.shape[1]):
+            output[:,i:i+filtersize,:] += np.dot(outgrad[:,i,:], B.T).reshape((output.shape[0], filtersize, self.ncolors))
  
-        return output
+        return output.reshape((output.shape[0], -1))
 
     def local_grad_B(self, outgrad):
         filtersize = self.B.shape()[0]/self.ncolors
@@ -77,6 +79,7 @@ class Convolve1d(Differentiable):
 
     def shape(self, inputs=None):
         filtersize = self.B.shape()[0]/self.ncolors
-        D = self.A.shape()[-1]/self.ncolors - filtersize + 1
-        return (self.A.shape()[0], D*self.B.shape()[1])
+        D = self.A.shape(inputs)[-1]/self.ncolors - filtersize + 1
+        return (self.A.shape(inputs)[0], D*self.B.shape()[1])
+
 
