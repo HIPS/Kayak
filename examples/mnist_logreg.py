@@ -8,9 +8,6 @@ num_folds = 5
 sys.path.append('..')
 import kayak
 
-sys.path.append('/Users/rpa/Dropbox/Whetlab/Whetlab-Python-Client')
-import whetlab
-
 # Here I define a nice little training function that takes inputs and targets.
 def train(inputs, targets, batch_size, learn_rate, momentum, l1_weight, l2_weight, dropout):
 
