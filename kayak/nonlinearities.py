@@ -70,6 +70,18 @@ class TanH(Nonlinearity):
     def local_grad(self, outgrad):
         return 1.0 - np.tanh(self.X.value())**2
 
+class Logistic(Nonlinearity):
+
+    def __init__(self, X):
+        super(Logistic, self).__init__(X)
+
+    def compute_value(self, reset, rng, inputs):
+        return 1.0/(1.0 + np.exp(-self.X.value(reset, rng, inputs)))
+
+    def local_grad(self, outgrad):
+        y = 1.0/(1.0 + np.exp(-self.X.value()))
+        return y*(1.0-y)
+
 class LogSoftMax(Nonlinearity):
 
     def __init__(self, X, axis=1):
