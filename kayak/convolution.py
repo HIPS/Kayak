@@ -18,8 +18,8 @@ class Convolve1d(Differentiable):
         self.axis = axis
 
     def compute_value(self, reset, rng, inputs):
-        A = self.A.value(reset=reset, rng=rng)
-        B = self.B.value(reset=reset, rng=rng)
+        A = self.A.value(reset, rng, inputs)
+        B = self.B.value(reset, rng, inputs)
         filtersize = B.shape[0]/self.ncolors
 
         # Broadcast to get color channels
