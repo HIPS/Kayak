@@ -252,10 +252,6 @@ class Concatenate(Differentiable):
         if len(args) > 0:
             B = Concatenate(axis, B, *args)
 
-        # TODO: consider relaxing this constraint.
-        if A.shape() != B.shape():
-           raise Exception("Matrices must be the same shape: %s vs %s" % (A.shape(), B.shape()))
-
         self.A = A
         self.B = B
         self.axis = axis
@@ -269,7 +265,7 @@ class Concatenate(Differentiable):
 
     def compute_grad(self, other, outgrad):
         gradient = np.zeros(other.shape())
-        outgrad_A, outgrad_B = np.split(outgrad, 2, axis=self.axis)
+        outgrad_A, outgrad_B = np.split(outgrad, [self.A.shape()[self.axis]], axis=self.axis)
 
         if other == self.A:
             gradient += outgrad_A
@@ -287,10 +283,11 @@ class Concatenate(Differentiable):
         return other == self.A or other == self.B or self.A.depends(other) or self.B.depends(other)
 
     def shape(self, inputs=None):
-        # Assuming shape of A and B are the same.
         a_shape = list(self.A.shape(inputs))
-        a_shape[self.axis] = a_shape[self.axis] * 2
-        return tuple(a_shape)
+        b_shape = list(self.B.shape(inputs))
+        shape = a_shape
+        shape[self.axis] = a_shape[self.axis] + b_shape[self.axis]
+        return tuple(shape)
 
 class TensorMult(Differentiable):
     pass
