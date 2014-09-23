@@ -94,3 +94,19 @@ class LogSoftMax(Nonlinearity):
 
     def local_grad(self, outgrad):
         return outgrad - (np.exp(self.value()) * np.expand_dims(np.sum(outgrad, axis=self.axis), axis=self.axis))
+
+
+class SoftMax(Nonlinearity):
+
+    def __init__(self, X, axis=1):
+        super(SoftMax, self).__init__(X)
+        self.axis = axis
+
+    def compute_value(self, reset, rng, inputs):
+        X = self.X.value(reset, rng, inputs)
+        return np.exp(X - util.logsumexp(X, axis=self.axis))
+
+    def local_grad(self, outgrad):
+        oldgrad = outgrad - (np.exp(self.value()) * np.expand_dims(np.sum(outgrad, axis=self.axis), axis=self.axis))
+        X = self.X.value(reset, rng, inputs)
+        return oldgrad * np.exp(np.exp(X - util.logsumexp(X, axis=self.axis)))
