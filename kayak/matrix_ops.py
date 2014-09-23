@@ -134,7 +134,7 @@ class MatAdd(Differentiable):
         return tuple(to_sum[::-1])
 
     def local_grad_A(self, outgrad):
-        if outgrad.shape == self.A.shape():
+        if np.atleast_1d(outgrad).shape == self.A.shape():
             return outgrad
         else:
             broadcast_axes = self.axes_for_sum(self.A.shape(), outgrad.shape)
@@ -144,7 +144,7 @@ class MatAdd(Differentiable):
         if np.atleast_1d(outgrad).shape == self.B.shape():
             return outgrad
         else:
-            broadcast_axes = self.axes_for_sum(self.B.shape(), np.atleast_1d(outgrad).shape)
+            broadcast_axes = self.axes_for_sum(self.B.shape(), outgrad.shape)
             return np.sum(outgrad, axis=broadcast_axes).reshape(self.B.shape())
 
     def compute_grad(self, other, outgrad):
@@ -242,6 +242,55 @@ class Reshape(Differentiable):
 
     def shape(self, inputs=None):
         return self.new_shape
+
+class Concatenate(Differentiable):
+
+    def __init__(self, axis, A, B, *args):
+        super(Concatenate, self).__init__()
+
+        # Recurse to handle lists of arguments.
+        if len(args) > 0:
+            B = Concatenate(axis, B, *args)
+
+        # TODO: consider relaxing this constraint.
+        if A.shape() != B.shape():
+           raise Exception("Matrices must be the same shape: %s vs %s" % (A.shape(), B.shape()))
+
+        self.A = A
+        self.B = B
+        self.axis = axis
+
+    def compute_value(self, reset, rng, inputs):
+        return np.concatenate((self.A.value(reset, rng, inputs),
+                               self.B.value(reset, rng, inputs)), axis=self.axis)
+
+    def local_grad(self, outgrad):
+        return outgrad
+
+    def compute_grad(self, other, outgrad):
+        gradient = np.zeros(other.shape())
+        outgrad_A, outgrad_B = np.split(outgrad, 2, axis=self.axis)
+
+        if other == self.A:
+            gradient += outgrad_A
+        elif self.A.depends(other):
+            gradient += self.A.grad(other, outgrad_A)
+
+        if other == self.B:
+            gradient += outgrad_B
+        elif self.B.depends(other):
+            gradient += self.B.grad(other, outgrad_B)
+
+        return gradient
+
+    def depends(self, other):
+        return other == self.A or other == self.B or self.A.depends(other) or self.B.depends(other)
+
+    def shape(self, inputs=None):
+        # Assuming shape of A and B are the same.
+        a_shape = list(self.A.shape(inputs))
+        a_shape[self.axis] = a_shape[self.axis] * 2
+        return tuple(a_shape)
 
 class TensorMult(Differentiable):
     pass

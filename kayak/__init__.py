@@ -87,13 +87,11 @@ class Differentiable(object):
 
         """
 
-        outgrad = np.atleast_1d(outgrad)
-
         # We need distinct gradients for different things we might
         # want to differentiate in terms of.  We cache with a
         # dictionary, but numpy objects don't have hashes by default.
 
-        outgrad_hash = hash(outgrad.tostring())
+        outgrad_hash = hash(np.atleast_1d(outgrad).tostring())
 
         # This is pretty slow.
         #outgrad_hash = hashlib.md5(np.atleast_1d(outgrad).view(np.uint8)).hexdigest() 
@@ -121,11 +119,10 @@ from constants      import Constant, Parameter
 from batcher        import Batcher
 from inputs         import Inputs
 from targets        import Targets
-from matrix_ops     import MatAdd, MatMult, MatSum, Transpose, Reshape
+from matrix_ops     import MatAdd, MatMult, MatSum, Transpose, Reshape, Concatenate
 from elem_ops       import ElemAdd
-from nonlinearities import SoftReLU, HardReLU, LogSoftMax, TanH, Logistic
+from nonlinearities import SoftReLU, HardReLU, LogSoftMax
 from losses         import L2Loss, LogMultinomialLoss
 from dropout        import Dropout
 from regularizers   import L2Norm, L1Norm, Horseshoe, NExp
 from crossval       import CrossValidator
-from convolution    import Convolve1d
