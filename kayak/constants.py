@@ -8,6 +8,7 @@ from . import Differentiable
 class Constant(Differentiable):
 
     def __init__(self, val):
+        super(Constant, self).__init__()
         self._value = np.atleast_1d(val)
 
     def value(self, reset=False, rng=None, inputs=None):

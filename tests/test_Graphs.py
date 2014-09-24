@@ -6,6 +6,27 @@ import kayak
 
 from . import *
 
+
+
+def test_graph_simple():
+    npr.seed(1)
+
+    N  = 1
+    D  = 1
+    H1 = 1
+
+    X  = kayak.Inputs(npr.randn(N,D))
+    W1 = kayak.Parameter(npr.randn(D,H1))
+    U3 = kayak.MatMult(W1, X)
+
+    out = U3
+
+    print "Value: ", out.value(True)
+    print "Gradient: ", out.grad(W1)
+    print "Grad error: ", kayak.util.checkgrad(W1, out)
+    assert kayak.util.checkgrad(W1, out) < MAX_GRAD_DIFF
+
+
 def test_graph_chain():
     npr.seed(1)
 

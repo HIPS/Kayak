@@ -9,9 +9,14 @@ EPSILON = sys.float_info.epsilon
 
 class Differentiable(object):
 
-    def __init__(self):
+    def __init__(self, parents=[]):
         self._value = None
         self._grad  = {}
+        self.parents = parents
+        for parent in parents:
+            if isinstance(parent, Differentiable):
+                parent.add_child(self)
+        self._children = []
 
     def value(self, reset=False, rng=None, inputs=None):
         """Compute the value of the function.  This walks up the
@@ -62,7 +67,7 @@ class Differentiable(object):
             self._grad  = {} # Throw away old gradients.
         return self._value
 
-    def grad(self, other, outgrad=1.0):
+    def grad(self, other):
         """Compute the gradient of this module in terms of another
         module.  One of the main points of the Kayak setup is to
         easily compute gradients in terms of parameters.  This is the
@@ -70,46 +75,40 @@ class Differentiable(object):
         something that produces a scalar, providing as an argument
         some other object that appears deeper in the graph.  You get
         out an array of the same shape as the deeper object, but which
-        is the gradient.  The trick is that there is an optional
-        argument that allows you to do this with backpropagation, so
-        if you hand it the upstream gradient, it multiplies it by the
-        Jacobian on the way down the chain.
+        is the gradient.
 
         Arguments:
 
           other: (Kayak object) The other object, in terms of which
-                 you'd like to take this thing's gradient .
-
-          outgrad: (float, numpy array, optional) The gradient of this
-                   object's outputs, which you need to compute in
-                   reverse mode.  That is, this is the bit being
-                   backpropagated.
-
+                 you'd like to take this thing's gradient.
         """
 
-        # We need distinct gradients for different things we might
-        # want to differentiate in terms of.  We cache with a
-        # dictionary, but numpy objects don't have hashes by default.
+        return other.d_out_d_self(self)
 
-        outgrad_hash = hash(np.atleast_1d(outgrad).tostring())
+    def d_out_d_self(self, out):
+        if self is out:
+            return 1.0
 
-        # This is pretty slow.
-        #outgrad_hash = hashlib.md5(np.atleast_1d(outgrad).view(np.uint8)).hexdigest() 
+        # check if d_out_d_self has been computed already, if not, compute it
+        # TODO: add hashing
+        
+        if len(self._children) == 0:
+            return np.zeros(self.shape())
+        else:
+            return sum([child.d_out_d_parent(out, self) for child in self._children])
 
-        if not self._grad.has_key((other,outgrad_hash)):
-            self._grad[(other,outgrad_hash)] = self.compute_grad(other, outgrad)
-        return self._grad[(other,outgrad_hash)]
+    def d_out_d_parent(self, out, parent):
+        return self.local_grad(parent, self.d_out_d_self(out))
+
+    def local_grad(self, parent, d_out_d_self):
+        """Return d_out_d_self * d_self_d_parent"""
+        raise Exception("Class 'Differentiable' is abstract.")
+
+    def add_child(self, child):
+        """We need to keep track of our children."""
+        self._children.append(child)
 
     def compute_value(self, reset, rng, inputs):
-        raise Exception("Class 'Differentiable' is abstract.")
-
-    def compute_grad(self, other):
-        raise Exception("Class 'Differentiable' is abstract.")
-
-    def local_grad(self, outgrad):
-        raise Exception("Class 'Differentiable' is abstract.")
-
-    def depends(self, other):
         raise Exception("Class 'Differentiable' is abstract.")
 
     def shape(self, inputs=None):

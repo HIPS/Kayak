@@ -9,52 +9,36 @@ from util     import broadcast
 class MatMult(Differentiable):
 
     def __init__(self, A, B, *args):
-        super(MatMult, self).__init__()
-
         # Recurse to handle lists of arguments.
         if len(args) > 0:
             B = MatMult(B, *args)
 
+        super(MatMult, self).__init__([A, B])
+
         if A.shape()[1] != B.shape()[0]:
             raise Exception("Cannot multiply %s by %s matrices." % (A.shape(), B.shape()))
 
-        self.A = A
-        self.B = B
+        self.A, self.B = self.parents
 
     def compute_value(self, reset, rng, inputs):
         return np.dot( self.A.value(reset, rng, inputs), self.B.value(reset, rng, inputs) )
 
-    def local_grad_A(self, outgrad):
-        # Numpy is really, really bad.  Have to handle length-1 vectors differently.
-        if len(self.B.shape()) == 1:
-            return np.outer(outgrad, self.B.value())
+    def local_grad(self, parent, d_out_d_self):
+        # TODO Allow for case A == B
+        if parent == self.A:
+            # Numpy is really, really bad.  Have to handle length-1 vectors differently.
+            if len(self.B.shape()) == 1:
+                return np.outer(d_out_d_self, self.B.value())
+            else:
+                return np.dot(d_out_d_self, self.B.value().T)
+        elif parent == self.B:
+            # Oh Numpy, you suck so much.
+            if len(self.A.shape()) == 1:
+                return np.outer(self.A.value(), d_out_d_self)
+            else:
+                return np.dot(self.A.value().T, d_out_d_self)
         else:
-            return np.dot(outgrad, self.B.value().T)
-
-    def local_grad_B(self, outgrad):
-        # Oh Numpy, you suck so much.
-        if len(self.A.shape()) == 1:
-            return np.outer(self.A.value(), outgrad)
-        else:        
-            return np.dot(self.A.value().T, outgrad)
-
-    def compute_grad(self, other, outgrad):
-        gradient = np.zeros(other.shape())
-
-        if other == self.A:
-            gradient += self.local_grad_A(outgrad)
-        elif self.A.depends(other):
-            gradient += self.A.grad(other, self.local_grad_A(outgrad))
-
-        if other == self.B:
-            gradient += self.local_grad_B(outgrad)
-        elif self.B.depends(other):
-            gradient += self.B.grad(other, self.local_grad_B(outgrad))
-
-        return gradient
-
-    def depends(self, other):
-        return other == self.A or other == self.B or self.A.depends(other) or self.B.depends(other)
+            raise Exception("Not a parent of me")
 
     def shape(self, inputs=None):
         if len(self.B.shape(inputs)) == 1:
@@ -65,7 +49,7 @@ class MatMult(Differentiable):
 class MatSum(Differentiable):
      
     def __init__(self, A, axis=None):
-        super(MatSum, self).__init__()
+        super(MatSum, self).__init__([A])
 
         if axis is not None and type(axis) != int:
             raise Exception("Can only sum over one axis at a time.")
@@ -82,17 +66,10 @@ class MatSum(Differentiable):
             # Handle a sum and reexpansion over one dimension.
             return np.expand_dims(np.sum(self.A.value(reset, rng, inputs), axis=self.axis), axis=self.axis)
 
-    def local_grad(self, outgrad):
+    def local_grad(self, parent, outgrad):
+        assert parent is self.A
         return outgrad * np.ones(self.A.shape())
 
-    def compute_grad(self, other, outgrad):
-        if other == self.A:
-            return self.local_grad(outgrad)
-        elif self.A.depends(other):
-            return self.A.grad(other, self.local_grad(outgrad))
-        else:
-            return np.zeros(other.shape())
-    
     def shape(self, inputs=None):
         if self.axis is None:
             return tuple( [1] * len(self.A.shape(inputs)) )
@@ -107,12 +84,12 @@ class MatSum(Differentiable):
 class MatAdd(Differentiable):
 
     def __init__(self, A, B, *args):
-        super(MatAdd, self).__init__()
-
         # Recurse to handle lists of arguments.
         if len(args) > 0:
             B = MatAdd(B, *args)
-        
+
+        super(MatAdd, self).__init__([A,B])
+
         if broadcast(A.shape(), B.shape()) is None:
             raise Exception("Matrices are not broadcastable: %s vs %s" % (A.shape(), B.shape()))
 
@@ -133,40 +110,14 @@ class MatAdd(Differentiable):
                 to_sum.append(len(outgrad_shape)-dim-1)
         return tuple(to_sum[::-1])
 
-    def local_grad_A(self, outgrad):
-        if np.atleast_1d(outgrad).shape == self.A.shape():
-            return outgrad
+    def local_grad(self, parent, d_out_d_self):
+        assert self.A is not self.B
+        assert parent is self.A or parent is self.B
+        if np.atleast_1d(d_out_d_self).shape == parent.shape():
+            return d_out_d_self
         else:
-            broadcast_axes = self.axes_for_sum(self.A.shape(), outgrad.shape)
-            return np.sum(outgrad, axis=broadcast_axes).reshape(self.A.shape())
-
-    def local_grad_B(self, outgrad):
-        if np.atleast_1d(outgrad).shape == self.B.shape():
-            return outgrad
-        else:
-            broadcast_axes = self.axes_for_sum(self.B.shape(), outgrad.shape)
-            return np.sum(outgrad, axis=broadcast_axes).reshape(self.B.shape())
-
-    def compute_grad(self, other, outgrad):
-        if outgrad is None:
-            outgrad = np.ones(broadcast(self.A.shape(), self.B.shape()))
-
-        gradient = np.zeros(other.shape())
-
-        if other == self.A:
-            gradient += self.local_grad_A(outgrad)
-        elif self.A.depends(other):
-            gradient += self.A.grad(other, self.local_grad_A(outgrad))
-
-        if other == self.B:
-            gradient += self.local_grad_B(outgrad)
-        elif self.B.depends(other):
-            gradient += self.B.grad(other, self.local_grad_B(outgrad))
-
-        return gradient
-
-    def depends(self, other):
-        return other == self.A or other == self.B or self.A.depends(other) or self.B.depends(other)
+            broadcast_axes = self.axes_for_sum(parent.shape(), d_out_d_self.shape)
+            return np.sum(d_out_d_self, axis=broadcast_axes).reshape(parent.shape())
 
     def shape(self, inputs=None):
         return broadcast(self.A.shape(inputs), self.B.shape(inputs))
