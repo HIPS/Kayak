@@ -27,6 +27,3 @@ class Inputs(object):
 
     def grad(self, other):
         raise Exception("Not sensible to compute gradient in terms of inputs.")
-
-    def depends(self, other):
-        return False

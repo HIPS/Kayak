@@ -34,6 +34,10 @@ class Parameter(Constant):
     def __init__(self, val):
         super(Parameter, self).__init__(val)
 
+    def set_value(self, new_value):
+        self._clear_value()
+        self._value = new_value
+
     def add(self, addend):
         new_value = self._value  + addend
         self._clear_value()
