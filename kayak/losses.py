@@ -16,7 +16,7 @@ class Loss(Differentiable):
         self.preds  = predictions
         self.targs  = targets
 
-    def shape(self, inputs=None):
+    def compute_shape(self, inputs=None):
         return self.preds.shape(inputs)
 
 class L2Loss(Loss):

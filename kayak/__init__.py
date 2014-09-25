@@ -12,6 +12,7 @@ class Differentiable(object):
     def __init__(self, parents=[]):
         self._value = None
         self._grad  = {}
+        self._shape = {}
         for parent_index, parent in enumerate(parents):
             if isinstance(parent, Differentiable):
                 parent.add_child(self, parent_index)
@@ -85,6 +86,14 @@ class Differentiable(object):
         """
         return other.d_out_d_self(self)
 
+    def shape(self, inputs=None):
+        if inputs in self._shape:
+            return self._shape[inputs]
+
+        shape = self.compute_shape(inputs)
+        self._shape[inputs] = shape
+        return shape
+
     def d_out_d_self(self, out):
         if out in self._grad:
             return self._grad[out]
@@ -146,8 +155,9 @@ class Differentiable(object):
     def compute_value(self, rng, inputs):
         raise Exception("Class 'Differentiable' is abstract.")
 
-    def shape(self, inputs=None):
+    def compute_shape(self, rng, inputs):
         raise Exception("Class 'Differentiable' is abstract.")
+
 
 from constants      import Constant, Parameter
 from batcher        import Batcher

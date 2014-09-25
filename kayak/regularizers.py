@@ -12,7 +12,7 @@ class Regularizer(Differentiable):
         self.X      = X
         self.weight = weight
 
-    def shape(self, inputs=None):
+    def compute_shape(self, inputs=None):
         return tuple([1] * len(self.X.shape(inputs)))
 
 class L2Norm(Regularizer):

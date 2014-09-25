@@ -79,7 +79,7 @@ class Convolve1d(Differentiable):
     def depends(self, other):
         return self.A == other or self.B == other or self.A.depends(other) or self.B.depends(other)
 
-    def shape(self, inputs=None):
+    def compute_shape(self, inputs=None):
         filtersize = self.B.shape()[0]/self.ncolors
         D = self.A.shape(inputs)[-1]/self.ncolors - filtersize + 1
         return (self.A.shape(inputs)[0], D*self.B.shape()[1])

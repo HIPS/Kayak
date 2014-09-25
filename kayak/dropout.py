@@ -50,5 +50,5 @@ class Dropout(Differentiable):
     def depends(self, other):
         return other == self.X or self.X.depends(other)
 
-    def shape(self, inputs=None):
+    def compute_shape(self, inputs=None):
         return self.X.shape(inputs)

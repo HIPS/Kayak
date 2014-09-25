@@ -23,7 +23,7 @@ class Constant(Differentiable):
     def depends(self, other):
         return self == other
 
-    def shape(self, inputs=None):
+    def compute_shape(self, inputs=None):
         if inputs is not None and inputs.has_key(self):
             return inputs[self].shape
         else:

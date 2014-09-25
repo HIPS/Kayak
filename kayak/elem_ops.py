@@ -12,7 +12,7 @@ class Elementwise(Differentiable):
         super(Elementwise, self).__init__()
         self.X = X
 
-    def shape(self, inputs=None):
+    def compute_shape(self, inputs=None):
         return self.X.shape(inputs)
 
 # Just an alias for matrix addition.

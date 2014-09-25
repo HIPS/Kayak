@@ -13,7 +13,7 @@ class Nonlinearity(Differentiable):
         super(Nonlinearity, self).__init__([X])
         self.X = X
 
-    def shape(self, inputs=None):
+    def compute_shape(self, inputs=None):
         return self.X.shape(inputs)
 
     def local_grad(self, parent, d_out_d_self):

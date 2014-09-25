@@ -39,7 +39,7 @@ class MatMult(Differentiable):
         else:
             raise Exception("Not a parent of me")
 
-    def shape(self, inputs=None):
+    def compute_shape(self, inputs=None):
         if len(self.B.shape(inputs)) == 1:
             return (self.A.shape(inputs)[0],)
         else:
@@ -68,7 +68,7 @@ class MatSum(Differentiable):
     def local_grad(self, parent, d_out_d_self):
         return d_out_d_self * np.ones(self.A.shape())
 
-    def shape(self, inputs=None):
+    def compute_shape(self, inputs=None):
         if self.axis is None:
             return tuple( [1] * len(self.A.shape(inputs)) )
         else:
@@ -116,7 +116,7 @@ class MatAdd(Differentiable):
             broadcast_axes = self.axes_for_sum(P.shape(), d_out_d_self.shape)
             return np.sum(d_out_d_self, axis=broadcast_axes).reshape(P.shape())
 
-    def shape(self, inputs=None):
+    def compute_shape(self, inputs=None):
         return broadcast(self.A.shape(inputs), self.B.shape(inputs))
 
 class MatDet(Differentiable):
@@ -145,7 +145,7 @@ class Transpose(Differentiable):
         else:
             return np.transpose(d_out_d_self, axes=np.argsort(self.axes))
 
-    def shape(self, inputs=None):
+    def compute_shape(self, inputs=None):
         if self.axes is None:
             return self.A.shape(inputs)[::-1]
         else:
@@ -166,7 +166,7 @@ class Reshape(Differentiable):
     def local_grad(self, parent, d_out_d_self):
         return np.reshape(d_out_d_self, self.A.shape())
 
-    def shape(self, inputs=None):
+    def compute_shape(self, inputs=None):
         return self.new_shape
 
 class Concatenate(Differentiable):
@@ -190,7 +190,7 @@ class Concatenate(Differentiable):
         local_grad_both = np.split(d_out_d_self, [self.A.shape()[self.axis]], axis=self.axis)
         return local_grad_both[parent]
 
-    def shape(self, inputs=None):
+    def compute_shape(self, inputs=None):
         a_shape = list(self.A.shape(inputs))
         b_shape = list(self.B.shape(inputs))
         shape = a_shape
