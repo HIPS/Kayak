@@ -16,7 +16,7 @@ class Loss(Differentiable):
         self.preds  = predictions
         self.targs  = targets
 
-    def compute_shape(self, inputs=None):
+    def _compute_shape(self, inputs=None):
         return self.preds.shape(inputs)
 
 class L2Loss(Loss):
@@ -25,10 +25,10 @@ class L2Loss(Loss):
         super(L2Loss, self).__init__(predictions, targets)
         self.axis = axis
 
-    def compute_value(self, rng, inputs):
+    def _compute_value(self, rng, inputs):
         return np.atleast_1d(np.sum((self.preds.value(rng, inputs) - self.targs.value(rng, inputs))**2, axis=self.axis))
 
-    def local_grad(self, parent, d_out_d_self):
+    def _local_grad(self, parent, d_out_d_self):
         return 2 * (self.preds.value() - self.targs.value()) * d_out_d_self
 
 class LogMultinomialLoss(Loss):
@@ -38,8 +38,8 @@ class LogMultinomialLoss(Loss):
         super(LogMultinomialLoss, self).__init__(predictions, targets)
         self.axis = axis
 
-    def compute_value(self, rng, inputs):
+    def _compute_value(self, rng, inputs):
         return -np.atleast_1d(np.sum( self.targs.value(rng, inputs) * self.preds.value(rng, inputs), axis=self.axis))
 
-    def local_grad(self, parent, d_out_d_self):
+    def _local_grad(self, parent, d_out_d_self):
         return -d_out_d_self * self.targs.value()

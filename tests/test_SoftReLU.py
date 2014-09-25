@@ -13,7 +13,7 @@ def test_softrelu_values():
         X    = kayak.Parameter(np_X)
         Y    = kayak.SoftReLU(X)
 
-        assert np.all( Y.value(True) >= 0.0 )
+        assert np.all( Y.value() >= 0.0 )
         assert np.all(close_float(np.log(1.0 + np.exp(np_X)), Y.value()))
         
 def test_softrelu_grad():
@@ -25,6 +25,6 @@ def test_softrelu_grad():
         Y    = kayak.SoftReLU(X)
         Z    = kayak.MatSum(Y)
 
-        Z.value(True)
+        Z.value()
         assert np.all( Z.grad(X) >= 0.0 )
         assert kayak.util.checkgrad(X, Z) < MAX_GRAD_DIFF

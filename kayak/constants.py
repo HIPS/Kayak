@@ -23,7 +23,7 @@ class Constant(Differentiable):
     def depends(self, other):
         return self == other
 
-    def compute_shape(self, inputs=None):
+    def _compute_shape(self, inputs=None):
         if inputs is not None and inputs.has_key(self):
             return inputs[self].shape
         else:
@@ -36,6 +36,6 @@ class Parameter(Constant):
 
     def add(self, addend):
         new_value = self._value  + addend
-        self.clear_value()
+        self._clear_value()
         self._value = new_value
 

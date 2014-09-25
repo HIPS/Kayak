@@ -23,7 +23,7 @@ class Dropout(Differentiable):
         else:
             self.rng = rng
 
-    def compute_value(self, rng, inputs):
+    def _compute_value(self, rng, inputs):
         if inputs is None:
             # If someone gave us an RNG, use it and pass it on.
             # Otherwise, use the instance-specific RNG.
@@ -36,19 +36,19 @@ class Dropout(Differentiable):
             # Assume we're at test time if there are inputs.
             return self.X.value(rng, inputs)
 
-    def local_grad(self, parent, d_out_d_self):
+    def _local_grad(self, parent, d_out_d_self):
         return d_out_d_self * self._mask * ((1.0 + EPSILON)/(1.0-self.drop_prob + EPSILON))
 
-    def compute_grad(self, other, d_out_d_self):
+    def _compute_grad(self, other, d_out_d_self):
         if other == self.X:
-            return self.local_grad(d_out_d_self)
+            return self._local_grad(d_out_d_self)
         elif self.X.depends(other):
-            return self.X.grad(other, self.local_grad(d_out_d_self))
+            return self.X.grad(other, self._local_grad(d_out_d_self))
         else:
             return np.zeros(self.X.shape())
 
     def depends(self, other):
         return other == self.X or self.X.depends(other)
 
-    def compute_shape(self, inputs=None):
+    def _compute_shape(self, inputs=None):
         return self.X.shape(inputs)

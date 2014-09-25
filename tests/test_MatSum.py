@@ -14,7 +14,7 @@ def test_scalar_value():
         Y = kayak.MatSum(X)
 
         # Verify that a scalar is reproduced.
-        assert close_float(Y.value(True), npX)
+        assert close_float(Y.value(), npX)
 
 def test_scalar_grad():
     npr.seed(2)
@@ -25,7 +25,7 @@ def test_scalar_grad():
         Y = kayak.MatSum(X)
 
         # Verify that the gradient is one.
-        Y.value(True)
+        Y.value()
         assert Y.grad(X) == 1.0
         assert kayak.util.checkgrad(X, Y) < MAX_GRAD_DIFF
 
@@ -38,7 +38,7 @@ def test_vector_value_1():
         Y = kayak.MatSum(X)
 
         # Verify the sum.
-        assert close_float(Y.value(True), np.sum(npX))
+        assert close_float(Y.value(), np.sum(npX))
 
 def test_vector_grad_1():
     npr.seed(4)
@@ -49,7 +49,7 @@ def test_vector_grad_1():
         Y = kayak.MatSum(X)
 
         # Verify the gradient.
-        Y.value(True)
+        Y.value()
         assert Y.grad(X).shape == npX.shape
         assert np.all(close_float(Y.grad(X), np.ones(npX.shape)))
         assert kayak.util.checkgrad(X, Y) < MAX_GRAD_DIFF
@@ -63,7 +63,7 @@ def test_vector_value_2():
         Y = kayak.MatSum(X)
 
         # Verify the sum.
-        assert close_float(Y.value(True), np.sum(npX))
+        assert close_float(Y.value(), np.sum(npX))
 
 def test_vector_grad_2():
     npr.seed(6)
@@ -74,7 +74,7 @@ def test_vector_grad_2():
         Y = kayak.MatSum(X)
 
         # Verify the gradient.
-        Y.value(True)
+        Y.value()
         assert Y.grad(X).shape == npX.shape
         assert np.all(close_float(Y.grad(X), np.ones(npX.shape)))
         assert kayak.util.checkgrad(X, Y) < MAX_GRAD_DIFF
@@ -88,7 +88,7 @@ def test_matrix_value():
         Y   = kayak.MatSum(X)
 
         # Verify the value.
-        assert close_float(Y.value(True), np.sum(npX))
+        assert close_float(Y.value(), np.sum(npX))
 
 def test_matrix_grad():
     npr.seed(8)
@@ -99,7 +99,7 @@ def test_matrix_grad():
         Y   = kayak.MatSum(X)
 
         # Verify the value.
-        Y.value(True)
+        Y.value()
         assert Y.grad(X).shape == npX.shape
         assert np.all(close_float(Y.grad(X), np.ones(npX.shape)))
         assert kayak.util.checkgrad(X, Y) < MAX_GRAD_DIFF
@@ -113,8 +113,8 @@ def test_nested_value_1():
         Y   = kayak.MatSum(X, axis=0)
         Z   = kayak.MatSum(Y)
 
-        assert np.all(close_float(Y.value(True), np.sum(npX, axis=0)))
-        assert close_float(Z.value(True), np.sum(npX))
+        assert np.all(close_float(Y.value(), np.sum(npX, axis=0)))
+        assert close_float(Z.value(), np.sum(npX))
 
 def test_nested_grad_1():
     npr.seed(10)
@@ -138,8 +138,8 @@ def test_nested_value_2():
         Y   = kayak.MatSum(X, axis=1)
         Z   = kayak.MatSum(Y)
 
-        assert np.all(close_float(Y.value(True).ravel(), np.sum(npX, axis=1)))
-        assert close_float(Z.value(True), np.sum(npX))
+        assert np.all(close_float(Y.value().ravel(), np.sum(npX, axis=1)))
+        assert close_float(Z.value(), np.sum(npX))
 
 def test_nested_grad_2():
     npr.seed(12)
@@ -163,7 +163,7 @@ def test_tensor_value_1():
         Y   = kayak.MatSum(X)
 
         assert X.shape() == npX.shape
-        assert close_float(Y.value(True), np.sum(npX))
+        assert close_float(Y.value(), np.sum(npX))
 
 def test_tensor_value_2():
     npr.seed(14)
@@ -173,7 +173,7 @@ def test_tensor_value_2():
         X   = kayak.Parameter( npX )
         Y   = kayak.MatSum(X, axis=2)
         
-        assert np.all(close_float(Y.value(True), np.expand_dims(np.sum(npX, axis=2), axis=2)))
+        assert np.all(close_float(Y.value(), np.expand_dims(np.sum(npX, axis=2), axis=2)))
 
 def test_tensor_value_3():
     npr.seed(15)
@@ -183,7 +183,7 @@ def test_tensor_value_3():
         X   = kayak.Parameter( npX )
         Y   = kayak.MatSum(X, axis=1)
         
-        assert np.all(close_float(Y.value(True), np.expand_dims(np.sum(npX, axis=1), axis=1)))
+        assert np.all(close_float(Y.value(), np.expand_dims(np.sum(npX, axis=1), axis=1)))
 
 def test_tensor_value_4():
     npr.seed(16)
@@ -193,4 +193,4 @@ def test_tensor_value_4():
         X   = kayak.Parameter( npX )
         Y   = kayak.MatSum(X, axis=0)
         
-        assert np.all(close_float(Y.value(True), np.expand_dims(np.sum(npX, axis=0), axis=0)))
+        assert np.all(close_float(Y.value(), np.expand_dims(np.sum(npX, axis=0), axis=0)))

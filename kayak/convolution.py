@@ -19,7 +19,7 @@ class Convolve1d(Differentiable):
         self.ncolors = ncolors
         self.axis = axis
 
-    def compute_value(self, rng, inputs):
+    def _compute_value(self, rng, inputs):
         A = self.A.value(rng, inputs)
         B = self.B.value(rng, inputs)
         filtersize = B.shape[0]/self.ncolors
@@ -61,7 +61,7 @@ class Convolve1d(Differentiable):
             offset += 1
         return output
 
-    def compute_grad(self, other, outgrad):
+    def _compute_grad(self, other, outgrad):
         gradient = np.zeros(other.shape())
 
         if other == self.A:
@@ -79,7 +79,7 @@ class Convolve1d(Differentiable):
     def depends(self, other):
         return self.A == other or self.B == other or self.A.depends(other) or self.B.depends(other)
 
-    def compute_shape(self, inputs=None):
+    def _compute_shape(self, inputs=None):
         filtersize = self.B.shape()[0]/self.ncolors
         D = self.A.shape(inputs)[-1]/self.ncolors - filtersize + 1
         return (self.A.shape(inputs)[0], D*self.B.shape()[1])

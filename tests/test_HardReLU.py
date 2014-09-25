@@ -13,7 +13,7 @@ def test_hardrelu_values():
         X    = kayak.Parameter(np_X)
         Y    = kayak.HardReLU(X)
 
-        assert np.all( Y.value(True) >= 0.0 )
+        assert np.all( Y.value() >= 0.0 )
         assert np.all(np.maximum(np_X, 0.0) == Y.value())
         
 def test_hardrelu_grad():
@@ -28,7 +28,7 @@ def test_hardrelu_grad():
         Y    = kayak.HardReLU(X)
         Z    = kayak.MatSum(Y)
 
-        Z.value(True)
+        Z.value()
         assert np.all( Z.grad(X) >= 0.0 )
         print "CHECKGRAD: ", ii, kayak.util.checkgrad(X, Z, epsilon)
         assert kayak.util.checkgrad(X, Z, epsilon) < MAX_GRAD_DIFF

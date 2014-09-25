@@ -19,7 +19,7 @@ def test_graph_simple():
 
     out = U3
 
-    print "Value: ", out.value(True)
+    print "Value: ", out.value()
     print "Gradient: ", out.grad(W1)
     print "Grad error: ", kayak.util.checkgrad(W1, out)
     assert kayak.util.checkgrad(W1, out) < MAX_GRAD_DIFF
@@ -43,7 +43,7 @@ def test_graph_chain():
     
     out = kayak.MatSum(U3)
 
-    out.value(True)
+    out.value()
     assert kayak.util.checkgrad(W1, out) < MAX_GRAD_DIFF
     assert kayak.util.checkgrad(W2, out) < MAX_GRAD_DIFF
     assert kayak.util.checkgrad(W3, out) < MAX_GRAD_DIFF
@@ -70,7 +70,7 @@ def test_graph_diamond():
     
     out = kayak.MatSum(kayak.MatAdd(U3a, U3b))
 
-    out.value(True)
+    out.value()
     print kayak.util.checkgrad(W1, out)
     print kayak.util.checkgrad(W2a, out)
     print kayak.util.checkgrad(W2b, out)
@@ -112,7 +112,7 @@ def test_graph_dag():
             
         out = kayak.MatSum(layers[-1])
 
-        out.value(True)
+        out.value()
         for jj, wt in enumerate(wts):
             diff = kayak.util.checkgrad(wt, out, 1e-4)
             print diff
