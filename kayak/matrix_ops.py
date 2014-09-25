@@ -66,9 +66,9 @@ class MatSum(Differentiable):
             # Handle a sum and reexpansion over one dimension.
             return np.expand_dims(np.sum(self.A.value(rng, inputs), axis=self.axis), axis=self.axis)
 
-    def local_grad(self, parent, outgrad):
+    def local_grad(self, parent, d_out_d_self):
         assert parent is self.A
-        return outgrad * np.ones(self.A.shape())
+        return d_out_d_self * np.ones(self.A.shape())
 
     def shape(self, inputs=None):
         if self.axis is None:
@@ -99,20 +99,19 @@ class MatAdd(Differentiable):
     def compute_value(self, rng, inputs):
         return self.A.value(rng, inputs) + self.B.value(rng, inputs)
 
-    def axes_for_sum(self, mat_shape, outgrad_shape):
+    def axes_for_sum(self, mat_shape, d_out_d_self_shape):
         mat_shape = list(mat_shape)
-        outgrad_shape = list(outgrad_shape)
+        d_out_d_self_shape = list(d_out_d_self_shape)
         to_sum = []
-        for dim, sz in enumerate(outgrad_shape[::-1]):
+        for dim, sz in enumerate(d_out_d_self_shape[::-1]):
             if len(mat_shape) == 0:
-                to_sum.append(len(outgrad_shape)-dim-1)
+                to_sum.append(len(d_out_d_self_shape)-dim-1)
             elif mat_shape.pop() == 1:
-                to_sum.append(len(outgrad_shape)-dim-1)
+                to_sum.append(len(d_out_d_self_shape)-dim-1)
         return tuple(to_sum[::-1])
 
     def local_grad(self, parent, d_out_d_self):
         assert self.A is not self.B
-        assert parent is self.A or parent is self.B
         if np.atleast_1d(d_out_d_self).shape == parent.shape():
             return d_out_d_self
         else:
@@ -134,7 +133,7 @@ class MatTrace(Differentiable):
 class Transpose(Differentiable):
 
     def __init__(self, A, axes=None):
-        super(Transpose, self).__init__()
+        super(Transpose, self).__init__([A])
 
         self.A    = A
         self.axes = axes
@@ -142,22 +141,11 @@ class Transpose(Differentiable):
     def compute_value(self, rng, inputs):
         return np.transpose(self.A.value(rng, inputs), axes=self.axes)
 
-    def local_grad(self, outgrad):
+    def local_grad(self, parent, d_out_d_self):
         if self.axes is None:
-            return np.transpose(outgrad)
+            return np.transpose(d_out_d_self)
         else:
-            return np.transpose(outgrad, axes=np.argsort(self.axes))
-
-    def compute_grad(self, other, outgrad):
-        if other == self.A:
-            return self.local_grad(outgrad)
-        elif self.A.depends(other):
-            return self.A.grad(other, self.local_grad(outgrad))
-        else:
-            return np.zeros(self.A.shape())
-
-    def depends(self, other):
-        return other == self.A or self.A.depends(other)
+            return np.transpose(d_out_d_self, axes=np.argsort(self.axes))
 
     def shape(self, inputs=None):
         if self.axes is None:
@@ -169,7 +157,7 @@ class Transpose(Differentiable):
 class Reshape(Differentiable):
 
     def __init__(self, A, new_shape):
-        super(Reshape, self).__init__()
+        super(Reshape, self).__init__([A])
 
         self.A         = A
         self.new_shape = new_shape
@@ -177,19 +165,8 @@ class Reshape(Differentiable):
     def compute_value(self, rng, inputs):
         return np.reshape(self.A.value(rng, inputs), self.new_shape)
 
-    def local_grad(self, outgrad):
-        return np.reshape(outgrad, self.A.shape())
-
-    def compute_grad(self, other, outgrad):
-        if other == self.A:
-            return self.local_grad(outgrad)
-        elif self.A.depends(other):
-            return self.A.grad(other, self.local_grad(outgrad))
-        else:
-            return np.zeros(self.A.shape())
-
-    def depends(self, other):
-        return other == self.A or self.A.depends(other)
+    def local_grad(self, parent, d_out_d_self):
+        return np.reshape(d_out_d_self, self.A.shape())
 
     def shape(self, inputs=None):
         return self.new_shape
@@ -197,11 +174,11 @@ class Reshape(Differentiable):
 class Concatenate(Differentiable):
 
     def __init__(self, axis, A, B, *args):
-        super(Concatenate, self).__init__()
-
         # Recurse to handle lists of arguments.
         if len(args) > 0:
             B = Concatenate(axis, B, *args)
+
+        super(Concatenate, self).__init__([A, B])
 
         self.A = A
         self.B = B
@@ -211,27 +188,15 @@ class Concatenate(Differentiable):
         return np.concatenate((self.A.value(rng, inputs),
                                self.B.value(rng, inputs)), axis=self.axis)
 
-    def local_grad(self, outgrad):
-        return outgrad
-
-    def compute_grad(self, other, outgrad):
-        gradient = np.zeros(other.shape())
-        outgrad_A, outgrad_B = np.split(outgrad, [self.A.shape()[self.axis]], axis=self.axis)
-
-        if other == self.A:
-            gradient += outgrad_A
-        elif self.A.depends(other):
-            gradient += self.A.grad(other, outgrad_A)
-
-        if other == self.B:
-            gradient += outgrad_B
-        elif self.B.depends(other):
-            gradient += self.B.grad(other, outgrad_B)
-
-        return gradient
-
-    def depends(self, other):
-        return other == self.A or other == self.B or self.A.depends(other) or self.B.depends(other)
+    def local_grad(self, parent, d_out_d_self):
+        assert self.A is not self.B
+        local_grad_A, local_grad_B = np.split(d_out_d_self, [self.A.shape()[self.axis]], axis=self.axis)
+        if parent is self.A:
+            return local_grad_A
+        elif parent is self.B:
+            return local_grad_B
+        else:
+            raise Exception("Parent must be A or B")
 
     def shape(self, inputs=None):
         a_shape = list(self.A.shape(inputs))

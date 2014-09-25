@@ -15,9 +15,6 @@ class Elementwise(Differentiable):
     def shape(self, inputs=None):
         return self.X.shape(inputs)
 
-    def depends(self, other):
-        return self.X == other or self.X.depends(other)
-
 # Just an alias for matrix addition.
 ElemAdd = matrix_ops.MatAdd
 

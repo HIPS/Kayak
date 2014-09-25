@@ -14,7 +14,7 @@ def test_nondropout_values():
     X    = kayak.Parameter(np_X)
     Y    = kayak.Dropout(X, drop_prob=0.0, rng=1)
     
-    assert np.all(close_float(Y.value(True), np_X))
+    assert np.all(close_float(Y.value(), np_X))
 
 def test_alldropout_values():
     npr.seed(2)
@@ -24,7 +24,7 @@ def test_alldropout_values():
     X    = kayak.Parameter(np_X)
     Y    = kayak.Dropout(X, drop_prob=1.0, rng=1)
     
-    assert np.all(Y.value(True) == 0.0)
+    assert np.all(Y.value() == 0.0)
 
 def test_dropout_values():
     # Drop some things out.
@@ -38,7 +38,7 @@ def test_dropout_values():
         X    = kayak.Parameter(np_X)
         Y    = kayak.Dropout(X, drop_prob=prob, rng=1)
 
-        Y.value(True)
+        Y.value()
 
         assert np.all(np.logical_xor(Y.value() == 0.0,
                                      close_float(Y.value(), scale*np_X)))
@@ -51,7 +51,7 @@ def test_nondropout_grad():
     Y    = kayak.Dropout(X, drop_prob=0.0, rng=1)
     Z    = kayak.MatSum(Y)
     
-    Z.value(True)
+    Z.value()
     assert Z.grad(X).shape == np_X.shape
     assert kayak.util.checkgrad(X, Z) < MAX_GRAD_DIFF
 
@@ -63,7 +63,7 @@ def test_alldropout_grad():
     Y    = kayak.Dropout(X, drop_prob=1.0, rng=1)
     Z    = kayak.MatSum(Y)
     
-    Z.value(True)
+    Z.value()
     assert Z.grad(X).shape == np_X.shape
     assert kayak.util.checkgrad(X, Z) < MAX_GRAD_DIFF
 
@@ -80,7 +80,7 @@ def test_dropout_grad():
         Y    = kayak.Dropout(X, drop_prob=prob, rng=1)
         Z    = kayak.MatSum(Y)
 
-        Z.value(True)
+        Z.value()
         assert Z.grad(X).shape == np_X.shape
         assert kayak.util.checkgrad(X, Z) < MAX_GRAD_DIFF
 

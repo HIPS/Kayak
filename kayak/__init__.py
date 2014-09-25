@@ -100,6 +100,7 @@ class Differentiable(object):
         return grad
 
     def d_out_d_parent(self, out, parent):
+        assert parent in self._parents
         return self.local_grad(parent, self.d_out_d_self(out))
 
     def clear_value(self):
@@ -140,7 +141,7 @@ class Differentiable(object):
         """We need to keep track of our children."""
         self._children.append(child)
 
-    def compute_value(self, reset, rng, inputs):
+    def compute_value(self, rng, inputs):
         raise Exception("Class 'Differentiable' is abstract.")
 
     def shape(self, inputs=None):

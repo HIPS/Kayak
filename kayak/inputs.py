@@ -9,7 +9,7 @@ class Inputs(object):
         self.data    = np.atleast_1d(X)
         self.batcher = batcher
 
-    def value(self, reset=False, rng=None, inputs=None):
+    def value(self, rng=None, inputs=None):
         if inputs is not None and inputs.has_key(self):
             return inputs[self]
         elif self.batcher is None:
