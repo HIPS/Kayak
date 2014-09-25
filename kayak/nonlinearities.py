@@ -17,7 +17,6 @@ class Nonlinearity(Differentiable):
         return self.X.shape(inputs)
 
     def local_grad(self, parent, d_out_d_self):
-        assert parent is self.X
         return self._local_grad(d_out_d_self)
 
 class SoftReLU(Nonlinearity):

@@ -1,6 +1,8 @@
 # Author: Ryan P. Adams <rpa@seas.harvard.edu>, Jasper Snoek <jsnoek@seas.harvard.edu>
 # Copyright 2014, The President and Fellows of Harvard University
 
+# TODO: Refactor and write tests
+
 import numpy as np
 
 import util

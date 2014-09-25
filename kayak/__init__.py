@@ -12,11 +12,11 @@ class Differentiable(object):
     def __init__(self, parents=[]):
         self._value = None
         self._grad  = {}
-        self._parents = []
-        for parent in parents:
+        for parent_index, parent in enumerate(parents):
             if isinstance(parent, Differentiable):
-                parent.add_child(self)
-                self._parents.append(parent)
+                parent.add_child(self, parent_index)
+
+        self._parents = parents
         self._children = []
 
     def value(self, rng=None, inputs=None):
@@ -94,13 +94,13 @@ class Differentiable(object):
         elif len(self._children) == 0:
             grad = np.zeros(self.shape())
         else:
-            grad = sum([child.d_out_d_parent(out, self) for child in self._children])
+            grad = sum([child.d_out_d_parent(out, parent_index) for 
+                        child, parent_index in self._children])
 
         self._grad[out] = grad
         return grad
 
     def d_out_d_parent(self, out, parent):
-        assert parent in self._parents
         return self.local_grad(parent, self.d_out_d_self(out))
 
     def clear_value(self):
@@ -116,7 +116,7 @@ class Differentiable(object):
 
         self.clear_grad()
 
-        for child in self._children:
+        for child, _ in self._children:
             child.clear_value()
 
         self._value = None
@@ -129,7 +129,8 @@ class Differentiable(object):
             return
 
         for parent in self._parents:
-            parent.clear_grad()
+            if isinstance(parent, Differentiable):
+                parent.clear_grad()
 
         self._grad = {}
 
@@ -137,9 +138,10 @@ class Differentiable(object):
         """Return d_out_d_self * d_self_d_parent"""
         raise Exception("Class 'Differentiable' is abstract.")
 
-    def add_child(self, child):
-        """We need to keep track of our children."""
-        self._children.append(child)
+    def add_child(self, child, parent_index):
+        """We need to keep track of our children. parent_index tells us which
+        parent we are."""
+        self._children.append((child, parent_index))
 
     def compute_value(self, rng, inputs):
         raise Exception("Class 'Differentiable' is abstract.")

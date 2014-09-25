@@ -24,14 +24,13 @@ class MatMult(Differentiable):
         return np.dot( self.A.value(rng, inputs), self.B.value(rng, inputs) )
 
     def local_grad(self, parent, d_out_d_self):
-        # TODO Allow for case A == B
-        if parent == self.A:
+        if parent == 0:
             # Numpy is really, really bad.  Have to handle length-1 vectors differently.
             if len(self.B.shape()) == 1:
                 return np.outer(d_out_d_self, self.B.value())
             else:
                 return np.dot(d_out_d_self, self.B.value().T)
-        elif parent == self.B:
+        elif parent == 1:
             # Oh Numpy, you suck so much.
             if len(self.A.shape()) == 1:
                 return np.outer(self.A.value(), d_out_d_self)
@@ -67,7 +66,6 @@ class MatSum(Differentiable):
             return np.expand_dims(np.sum(self.A.value(rng, inputs), axis=self.axis), axis=self.axis)
 
     def local_grad(self, parent, d_out_d_self):
-        assert parent is self.A
         return d_out_d_self * np.ones(self.A.shape())
 
     def shape(self, inputs=None):
@@ -111,12 +109,12 @@ class MatAdd(Differentiable):
         return tuple(to_sum[::-1])
 
     def local_grad(self, parent, d_out_d_self):
-        assert self.A is not self.B
-        if np.atleast_1d(d_out_d_self).shape == parent.shape():
+        P = self._parents[parent]
+        if np.atleast_1d(d_out_d_self).shape == P.shape():
             return d_out_d_self
         else:
-            broadcast_axes = self.axes_for_sum(parent.shape(), d_out_d_self.shape)
-            return np.sum(d_out_d_self, axis=broadcast_axes).reshape(parent.shape())
+            broadcast_axes = self.axes_for_sum(P.shape(), d_out_d_self.shape)
+            return np.sum(d_out_d_self, axis=broadcast_axes).reshape(P.shape())
 
     def shape(self, inputs=None):
         return broadcast(self.A.shape(inputs), self.B.shape(inputs))
@@ -189,14 +187,8 @@ class Concatenate(Differentiable):
                                self.B.value(rng, inputs)), axis=self.axis)
 
     def local_grad(self, parent, d_out_d_self):
-        assert self.A is not self.B
-        local_grad_A, local_grad_B = np.split(d_out_d_self, [self.A.shape()[self.axis]], axis=self.axis)
-        if parent is self.A:
-            return local_grad_A
-        elif parent is self.B:
-            return local_grad_B
-        else:
-            raise Exception("Parent must be A or B")
+        local_grad_both = np.split(d_out_d_self, [self.A.shape()[self.axis]], axis=self.axis)
+        return local_grad_both[parent]
 
     def shape(self, inputs=None):
         a_shape = list(self.A.shape(inputs))
