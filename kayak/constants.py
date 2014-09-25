@@ -11,7 +11,7 @@ class Constant(Differentiable):
         super(Constant, self).__init__()
         self._value = np.atleast_1d(val)
 
-    def value(self, reset=False, rng=None, inputs=None):
+    def value(self, rng=None, inputs=None):
         if inputs is not None and inputs.has_key(self):
             return inputs[self]
         else:
@@ -35,4 +35,7 @@ class Parameter(Constant):
         super(Parameter, self).__init__(val)
 
     def add(self, addend):
-        self._value += addend
+        new_value = self._value  + addend
+        self.clear_value()
+        self._value = new_value
+

@@ -6,8 +6,6 @@ import kayak
 
 from . import *
 
-
-
 def test_graph_simple():
     npr.seed(1)
 
@@ -25,7 +23,6 @@ def test_graph_simple():
     print "Gradient: ", out.grad(W1)
     print "Grad error: ", kayak.util.checkgrad(W1, out)
     assert kayak.util.checkgrad(W1, out) < MAX_GRAD_DIFF
-
 
 def test_graph_chain():
     npr.seed(1)
@@ -120,6 +117,23 @@ def test_graph_dag():
             diff = kayak.util.checkgrad(wt, out, 1e-4)
             print diff
             assert diff < 1e-4
-        
 
+def test_cache_utility():
+    npr.seed(3)
+
+    num_layers = 15
+    num_dims   = 3
     
+    X = kayak.Inputs(npr.randn(10, num_dims))
+    W1 = kayak.Parameter(npr.randn(num_dims, num_dims))
+    W2 = kayak.Parameter(npr.randn(num_dims, num_dims))
+
+    Z = kayak.MatMult(X, W1)
+
+    for jj in xrange(num_layers):
+        Z = kayak.SoftReLU(kayak.MatAdd(kayak.MatMult(Z, W2),
+                                        kayak.MatMult(Z, W2)))
+
+    out = kayak.MatSum(Z)
+    assert kayak.util.checkgrad(W1, out) < 1e-4
+

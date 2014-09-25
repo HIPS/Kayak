@@ -12,13 +12,14 @@ class Differentiable(object):
     def __init__(self, parents=[]):
         self._value = None
         self._grad  = {}
-        self.parents = parents
+        self._parents = []
         for parent in parents:
             if isinstance(parent, Differentiable):
                 parent.add_child(self)
+                self._parents.append(parent)
         self._children = []
 
-    def value(self, reset=False, rng=None, inputs=None):
+    def value(self, rng=None, inputs=None):
         """Compute the value of the function.  This walks up the
         dependency graph and finds all of the Kayak objects with known
         values (such as Inputs and Targets, perhaps modulated by a
@@ -57,14 +58,14 @@ class Differentiable(object):
 
         """
 
-        # No need to recurse at all if this object's value is already determined.
+        # # No need to recurse at all if this object's value is already determined.
         if inputs is not None and inputs.has_key(self):
             return inputs[self]
 
         # If we're resetting, or if the value is not yet cached, compute it.
-        if reset or self._value is None:
-            self._value = self.compute_value(reset, rng, inputs)
-            self._grad  = {} # Throw away old gradients.
+        if self._value is None:
+            self._value = self.compute_value(rng, inputs)
+
         return self._value
 
     def grad(self, other):
@@ -82,23 +83,54 @@ class Differentiable(object):
           other: (Kayak object) The other object, in terms of which
                  you'd like to take this thing's gradient.
         """
-
         return other.d_out_d_self(self)
 
     def d_out_d_self(self, out):
-        if self is out:
-            return 1.0
+        if out in self._grad:
+            return self._grad[out]
 
-        # check if d_out_d_self has been computed already, if not, compute it
-        # TODO: add hashing
-        
-        if len(self._children) == 0:
-            return np.zeros(self.shape())
+        if self is out:
+            grad = 1.0
+        elif len(self._children) == 0:
+            grad = np.zeros(self.shape())
         else:
-            return sum([child.d_out_d_parent(out, self) for child in self._children])
+            grad = sum([child.d_out_d_parent(out, self) for child in self._children])
+
+        self._grad[out] = grad
+        return grad
 
     def d_out_d_parent(self, out, parent):
         return self.local_grad(parent, self.d_out_d_self(out))
+
+    def clear_value(self):
+        """Recursively clears cached value and gradient by maintaining
+        the invariant that if a node's _value is None that node's
+        descendants' values and gradients are also None (or {}). This
+        is the logical dual of saying that if a node does have a
+        value, so must its parents."""
+
+        if self._value is None:
+            # Node is already clear
+            return
+
+        self.clear_grad()
+
+        for child in self._children:
+            child.clear_value()
+
+        self._value = None
+
+    def clear_grad(self):
+        """Recursively clears gradient and those gradients that
+        explicitly depend on it via backprop. If a node's _grad is
+        empty, the node's parents' _grad variables are also empty."""
+        if not self._grad:
+            return
+
+        for parent in self._parents:
+            parent.clear_grad()
+
+        self._grad = {}
 
     def local_grad(self, parent, d_out_d_self):
         """Return d_out_d_self * d_self_d_parent"""
