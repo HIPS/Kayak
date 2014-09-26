@@ -16,8 +16,8 @@ def test_matmult_values_1():
         B    = kayak.Parameter(np_B)
         C    = kayak.MatMult(A, B)
 
-        assert C.value().shape == (5,7)
-        assert np.all(close_float(C.value(), np.dot(np_A, np_B)))
+        assert C.value.shape == (5,7)
+        assert np.all(close_float(C.value, np.dot(np_A, np_B)))
 
 def test_matmult_values_2():
     npr.seed(2)
@@ -28,8 +28,8 @@ def test_matmult_values_2():
         A    = kayak.Parameter(np_A)
         C    = kayak.MatMult(A, A)
 
-        assert C.value().shape == (5,5)
-        assert np.all(close_float(C.value(), np.dot(np_A, np_A)))
+        assert C.value.shape == (5,5)
+        assert np.all(close_float(C.value, np.dot(np_A, np_A)))
 
 def test_matmult_values_3():
     npr.seed(3)
@@ -44,8 +44,8 @@ def test_matmult_values_3():
         C    = kayak.Parameter(np_C)
         D    = kayak.MatMult(A, B, C)
 
-        assert D.value().shape == (5,8)
-        assert np.all(close_float(D.value(), np.dot(np_A, np.dot(np_B, np_C))))
+        assert D.value.shape == (5,8)
+        assert np.all(close_float(D.value, np.dot(np_A, np.dot(np_B, np_C))))
 
 def test_matmult_grad_1():
     npr.seed(3)
@@ -59,7 +59,7 @@ def test_matmult_grad_1():
         C    = kayak.MatMult(A, B)
         D    = kayak.MatSum(C)
 
-        D.value()
+        D.value
         assert D.grad(A).shape == (5,6)
         assert D.grad(B).shape == (6,7)
         assert kayak.util.checkgrad(A, D) < MAX_GRAD_DIFF
@@ -75,7 +75,7 @@ def test_matmult_grad_2():
         C    = kayak.MatMult(A, A)
         D    = kayak.MatSum(C)
 
-        D.value()
+        D.value
         assert D.grad(A).shape == (5,5)
         assert kayak.util.checkgrad(A, D) < MAX_GRAD_DIFF
 

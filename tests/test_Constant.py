@@ -13,7 +13,7 @@ def test_constant_scalar():
         np_X = npr.randn()    
         X    = kayak.Constant(np_X)
         
-        assert close_float(X.value(), np_X)
+        assert close_float(X.value, np_X)
 
 def test_constant_vector():
     npr.seed(1)
@@ -23,7 +23,7 @@ def test_constant_vector():
         np_X = npr.randn(10)    
         X    = kayak.Constant(np_X)
         
-        assert np.all(close_float(X.value(), np_X))
+        assert np.all(close_float(X.value, np_X))
 
 def test_constant_matrix():
     npr.seed(1)
@@ -33,5 +33,5 @@ def test_constant_matrix():
         np_X = npr.randn(10,20)
         X    = kayak.Constant(np_X)
         
-        assert np.all(close_float(X.value(), np_X))
+        assert np.all(close_float(X.value, np_X))
 

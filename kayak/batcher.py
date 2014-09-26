@@ -4,7 +4,9 @@
 import numpy        as np
 import numpy.random as npr
 
-class Batcher(object):
+from . import Differentiable
+
+class Batcher(Differentiable):
     """Kayak class for managing batches of data.
     
     This class is intended to provide a simple interface for managing
@@ -34,7 +36,7 @@ class Batcher(object):
 
     """
 
-    def __init__(self, batch_size, total_size, rng=None):
+    def __init__(self, batch_size, total_size, random_batches=False):
         """Constructor for the Kayak Batcher class.
 
         This creates the Batcher, which makes it easy to manage
@@ -48,27 +50,13 @@ class Batcher(object):
 
           total_size: (Integer) Total number of data to iterate over.
 
-          rng: (None, Integer, or numpy.random.RandomState) Specifies
-               whether the mini-batches should be random or not.  If
-               rng=None (default), then the mini-batch indices will be
-               in numeric order, i.e., 0, 1, 2, 3, ...  If rng is an
-               integer, that will be used as the random seed to
-               produce a random permutation of the indices per epoch.
-               The parameter rng can also be a numpy.random
-               RandomState object, which will be used instead of
-               creating another one with the specified seed.
-
+          random_batches: (Bool) Specifies whether the mini-batches
+                          should be random or not.
         """
-        if rng is None:
-            self.rng = None
-        elif type(rng) == int:
-            self.rng = npr.RandomState(rng)
-        else:
-            self.rng = rng
-
+        super(Batcher, self).__init__([])
         self.batch_size = batch_size
         self.total_size = total_size
-
+        self.random_batches = random_batches
         self.reset()
 
     def reset(self):
@@ -77,8 +65,8 @@ class Batcher(object):
         It may happen that you want to 'reset the loop' and restart
         your iteration over the data.  Calling this method does that.
         If, in the constructor, you set rng=None, then you'll go back
-        to zero.  If rng was an integer or a RandomState object, you
-        will get a new random permutation when you reset.
+        to zero. If random_batches is true, you will get a new random
+        permutation when you reset.
 
         This method is automatically called when the iterator
         completes its loop, so you don't need to explicitly call it
@@ -87,14 +75,13 @@ class Batcher(object):
         Arguments: None
 
         """
-
-        if self.rng is None:
-            self.ordering = np.arange(self.total_size, dtype=int)
+        if self.random_batches:
+            self.ordering = npr.permutation(self.total_size)
         else:
-            self.ordering = self.rng.permutation(self.total_size)
+            self.ordering = np.arange(self.total_size, dtype=int)
         self.start    = 0
         self.end      = min(self.start+self.batch_size, self.total_size)
-        self._indices = self.ordering[self.start:self.end]
+        self._value = self.ordering[self.start:self.end]
 
     def __iter__(self):
         return self
@@ -116,22 +103,11 @@ class Batcher(object):
             self.reset()
             raise StopIteration
 
-        self._indices = self.ordering[self.start:self.end]
+        self._clear_value_cache()
+
+        self._value = self.ordering[self.start:self.end]
         self.start += self.batch_size
         self.end    = min(self.start + self.batch_size, self.total_size)
 
-        return self._indices
+        return self._value
 
-    def indices(self):
-        """Get the current list of indices.
-
-        You may want to get access to the mini-batch indices without
-        advancing the iterator.  This method does that.  It just
-        returns the indices in the current mini-batch.  This is how
-        the Inputs and Targets classes access the indices.
-
-        Arguments: None
-
-        """
-
-        return self._indices

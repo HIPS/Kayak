@@ -12,8 +12,8 @@ def test_reshape_1():
     A    = kayak.Parameter(np_A)
     B    = kayak.Reshape(A, (25,2))
 
-    B.value()
-    assert B.shape() == (25,2)
+    B.value
+    assert B.shape == (25,2)
 
 def test_reshape_2():
     npr.seed(2)
@@ -25,7 +25,7 @@ def test_reshape_2():
     D    = kayak.MatMult(B, C)
     out  = kayak.MatSum(D)
 
-    out.value()
+    out.value
     assert out.grad(A).shape == np_A.shape
     assert kayak.util.checkgrad(A, out) < MAX_GRAD_DIFF
 

@@ -8,16 +8,13 @@ from . import Differentiable
 class Loss(Differentiable):
     
     def __init__(self, predictions, targets):
-        super(Loss, self).__init__([predictions])
+        super(Loss, self).__init__([predictions, targets])
 
-        if predictions.shape(reset=False) != targets.shape():
-            raise Exception("Predictions and targets have different shapes: %s vs %s" % (predictions.shape(reset=False), targets.shape()))
+        if predictions.shape != targets.shape:
+            raise Exception("Predictions and targets have different shapes: %s vs %s" % (predictions.shape, targets.shape))
 
         self.preds  = predictions
         self.targs  = targets
-
-    def _compute_shape(self, inputs=None):
-        return self.preds.shape(inputs, reset=False)
 
 class L2Loss(Loss):
 
@@ -25,11 +22,11 @@ class L2Loss(Loss):
         super(L2Loss, self).__init__(predictions, targets)
         self.axis = axis
 
-    def _compute_value(self, rng, inputs):
-        return np.atleast_1d(np.sum((self.preds.value(False, rng, inputs) - self.targs.value(rng, inputs))**2, axis=self.axis))
+    def _compute_value(self):
+        return np.atleast_1d(np.sum((self.preds.value - self.targs.value)**2, axis=self.axis))
 
     def _local_grad(self, parent, d_out_d_self):
-        return 2 * (self.preds.value(False) - self.targs.value()) * d_out_d_self
+        return 2 * (self.preds.value - self.targs.value) * d_out_d_self
 
 class LogMultinomialLoss(Loss):
 
@@ -38,8 +35,8 @@ class LogMultinomialLoss(Loss):
         super(LogMultinomialLoss, self).__init__(predictions, targets)
         self.axis = axis
 
-    def _compute_value(self, rng, inputs):
-        return -np.atleast_1d(np.sum( self.targs.value(False, rng, inputs) * self.preds.value(rng, inputs), axis=self.axis))
+    def _compute_value(self):
+        return -np.atleast_1d(np.sum( self.targs.value * self.preds.value, axis=self.axis))
 
     def _local_grad(self, parent, d_out_d_self):
-        return -d_out_d_self * self.targs.value(False)
+        return - d_out_d_self * self.targs.value

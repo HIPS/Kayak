@@ -17,7 +17,7 @@ def test_scalar_value():
         out  = kayak.L2Loss(pred, targ)
 
         # Verify that a scalar is reproduced.
-        assert close_float(out.value(), (np_pred-np_targ)**2)
+        assert close_float(out.value, (np_pred-np_targ)**2)
 
 def test_scalar_grad():
     npr.seed(2)
@@ -44,7 +44,7 @@ def test_vector_value():
         targ = kayak.Targets(np_targ)
         out  = kayak.L2Loss(pred, targ)
 
-        assert close_float(out.value(), np.sum((np_pred-np_targ)**2))
+        assert close_float(out.value, np.sum((np_pred-np_targ)**2))
 
 def test_vector_grad():
     npr.seed(4)
@@ -71,8 +71,8 @@ def test_matrix_value_1():
         targ = kayak.Targets(np_targ)
         out  = kayak.L2Loss(pred, targ)
 
-        print out.value(), (np_pred-np_targ)**2
-        assert close_float(out.value(), np.sum((np_pred-np_targ)**2))
+        print out.value, (np_pred-np_targ)**2
+        assert close_float(out.value, np.sum((np_pred-np_targ)**2))
 
 def test_matrix_grad():
     npr.seed(6)
@@ -99,8 +99,8 @@ def test_matrix_value_2():
         targ = kayak.Targets(np_targ)
         out  = kayak.L2Loss(pred, targ, axis=0)
 
-        print out.value(), np.sum((np_pred-np_targ)**2, axis=0)
-        assert np.all(close_float(out.value(), np.sum((np_pred-np_targ)**2, axis=0)))
+        print out.value, np.sum((np_pred-np_targ)**2, axis=0)
+        assert np.all(close_float(out.value, np.sum((np_pred-np_targ)**2, axis=0)))
 
 def test_matrix_value_3():
     npr.seed(8)
@@ -113,6 +113,6 @@ def test_matrix_value_3():
         targ = kayak.Targets(np_targ)
         out  = kayak.L2Loss(pred, targ, axis=1)
 
-        print out.value(), np.sum((np_pred-np_targ)**2, axis=1)
-        assert np.all(close_float(out.value(), np.sum((np_pred-np_targ)**2, axis=1)))
+        print out.value, np.sum((np_pred-np_targ)**2, axis=1)
+        assert np.all(close_float(out.value, np.sum((np_pred-np_targ)**2, axis=1)))
 
