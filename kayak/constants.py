@@ -11,14 +11,14 @@ class Constant(Differentiable):
         super(Constant, self).__init__()
         self._value = np.atleast_1d(val)
 
-    def value(self, rng=None, inputs=None):
+    def value(self, reset=True, rng=None, inputs=None):
         if inputs is not None and inputs.has_key(self):
             return inputs[self]
         else:
             return self._value
 
     def grad(self, other):
-        return np.zeros(other.shape())
+        return np.zeros(other.shape(reset=False))
 
     def depends(self, other):
         return self == other
@@ -29,17 +29,18 @@ class Constant(Differentiable):
         else:
             return self._value.shape
 
+    def _clear_cache(self):
+        # Overriding base class method. Parameter never needs to clear its cache
+        return
+
 class Parameter(Constant):
 
     def __init__(self, val):
         super(Parameter, self).__init__(val)
 
     def set_value(self, new_value):
-        self._clear_value()
         self._value = new_value
 
     def add(self, addend):
         new_value = self._value  + addend
-        self._clear_value()
         self._value = new_value
-

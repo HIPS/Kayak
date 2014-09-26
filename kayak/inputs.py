@@ -9,7 +9,7 @@ class Inputs(object):
         self.data    = np.atleast_1d(X)
         self.batcher = batcher
 
-    def value(self, rng=None, inputs=None):
+    def value(self, reset=True, rng=None, inputs=None):
         if inputs is not None and inputs.has_key(self):
             return inputs[self]
         elif self.batcher is None:
@@ -17,13 +17,13 @@ class Inputs(object):
         else:
             return self.data[self.batcher.indices(),...]
     
-    def shape(self, inputs=None):
+    def shape(self, inputs=None, reset=True):
         if inputs is not None and inputs.has_key(self):
             return inputs[self].shape
         elif self.batcher is None:
             return self.data.shape
         else:
             return (len(self.batcher.indices()),) + self.data[0,...].shape
-
+        
     def grad(self, other):
         raise Exception("Not sensible to compute gradient in terms of inputs.")

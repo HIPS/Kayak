@@ -9,7 +9,7 @@ class Targets(object):
         self.data    = np.atleast_1d(Y)
         self.batcher = batcher
 
-    def value(self, rng=None, inputs=None):
+    def value(self, reset=True, rng=None, inputs=None):
         if inputs is not None and inputs.has_key(self):
             return inputs[self]
         elif self.batcher is None:
@@ -17,7 +17,7 @@ class Targets(object):
         else:
             return self.data[self.batcher.indices(),...]
 
-    def shape(self, inputs=None):
+    def shape(self, inputs=None, reset=True):
         if inputs is not None and inputs.has_key(self):
             return inputs[self].shape
         elif self.batcher is None:

@@ -40,8 +40,8 @@ def test_dropout_values():
 
         Y.value()
 
-        assert np.all(np.logical_xor(Y.value() == 0.0,
-                                     close_float(Y.value(), scale*np_X)))
+        assert np.all(np.logical_xor(Y.value(reset=False) == 0.0,
+                                     close_float(Y.value(reset=False), scale*np_X)))
 
 def test_nondropout_grad():
     npr.seed(4)

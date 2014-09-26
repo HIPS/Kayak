@@ -13,7 +13,7 @@ class Elementwise(Differentiable):
         self.X = X
 
     def _compute_shape(self, inputs=None):
-        return self.X.shape(inputs)
+        return self.X.shape(inputs, reset=False)
 
 # Just an alias for matrix addition.
 ElemAdd = matrix_ops.MatAdd

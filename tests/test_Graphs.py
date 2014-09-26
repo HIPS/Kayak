@@ -121,7 +121,7 @@ def test_graph_dag():
 def test_cache_utility():
     npr.seed(3)
 
-    num_layers = 15
+    num_layers = 17
     num_dims   = 3
     
     X = kayak.Inputs(npr.randn(10, num_dims))

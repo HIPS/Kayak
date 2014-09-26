@@ -13,7 +13,7 @@ class Regularizer(Differentiable):
         self.weight = weight
 
     def _compute_shape(self, inputs=None):
-        return tuple([1] * len(self.X.shape(inputs)))
+        return tuple([1] * len(self.X.shape(inputs, reset=False)))
 
 class L2Norm(Regularizer):
 
@@ -21,10 +21,10 @@ class L2Norm(Regularizer):
         super(L2Norm, self).__init__(X, weight)
 
     def _compute_value(self, rng, inputs):
-        return self.weight * np.sum(self.X.value(rng, inputs)**2)
+        return self.weight * np.sum(self.X.value(False, rng, inputs)**2)
 
     def _local_grad(self, parent, d_out_d_self):
-        return self.weight * 2.0 * self.X.value() * d_out_d_self
+        return self.weight * 2.0 * self.X.value(False) * d_out_d_self
 
 class L1Norm(Regularizer):
 
@@ -32,10 +32,10 @@ class L1Norm(Regularizer):
         super(L1Norm, self).__init__(X, weight)
 
     def _compute_value(self, rng, inputs):
-        return self.weight * np.sum(np.abs(self.X.value(rng, inputs)))
+        return self.weight * np.sum(np.abs(self.X.value(False, rng, inputs)))
 
     def _local_grad(self, parent, d_out_d_self):
-        return self.weight * np.sign(self.X.value()) * d_out_d_self
+        return self.weight * np.sign(self.X.value(False)) * d_out_d_self
 
 class Horseshoe(Regularizer):
 
@@ -43,11 +43,11 @@ class Horseshoe(Regularizer):
         super(Horseshoe, self).__init__(X, weight)
 
     def _compute_value(self, rng, inputs):
-        return -self.weight * np.sum(np.log(np.log(1.0 + self.X.value(rng, inputs)**(-2))))
+        return -self.weight * np.sum(np.log(np.log(1.0 + self.X.value(False, rng, inputs)**(-2))))
 
     def _local_grad(self, parent, d_out_d_self):
-        return -(self.weight * d_out_d_self * (1 / (np.log(1.0 + self.X.value()**(-2))))
-                 * (1.0/(1 + self.X.value()**(-2))) * (-2*self.X.value()**(-3)))
+        return -(self.weight * d_out_d_self * (1 / (np.log(1.0 + self.X.value(False, )**(-2))))
+                 * (1.0/(1 + self.X.value(False, )**(-2))) * (-2*self.X.value()**(-3)))
 
 class NExp(Regularizer):
 
@@ -55,7 +55,7 @@ class NExp(Regularizer):
         super(NExp, self).__init__(X, weight)
 
     def _compute_value(self, rng, inputs):
-        return self.weight * np.sum(1.0 - np.exp(-np.abs(self.X.value(rng, inputs))))
+        return self.weight * np.sum(1.0 - np.exp(-np.abs(self.X.value(False, rng, inputs))))
 
     def _local_grad(self, parent, d_out_d_self):
-        return self.weight * d_out_d_self * np.exp(-np.abs(self.X.value())) * np.sign(self.X.value())
+        return self.weight * d_out_d_self * np.exp(-np.abs(self.X.value(False))) * np.sign(self.X.value())

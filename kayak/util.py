@@ -16,18 +16,18 @@ def checkgrad(input, output, epsilon=1e-4):
     # Need to make sure all evals have the same random number generation.
     rng_seed = 1
 
-    value   = output.value(rng=npr.RandomState(rng_seed))
-    an_grad = output.grad(input)
+    value   = output.value(reset=True, rng=npr.RandomState(rng_seed))
+    an_grad = output.grad(input, reset=False)
     fd_grad = np.zeros(an_grad.shape)
 
-    for in_dims in it.product(*map(range, input.shape())):
-        small_vect = np.zeros(input.shape())
+    for in_dims in it.product(*map(range, input.shape(reset=False))):
+        small_vect = np.zeros(input.shape(reset=False))
         small_vect[in_dims] = epsilon/2.0
 
         input.add(small_vect)
-        fn_up = output.value(rng=npr.RandomState(rng_seed))
+        fn_up = output.value(reset=True, rng=npr.RandomState(rng_seed))
         input.add(- 2 * small_vect)
-        fn_dn = output.value(rng=npr.RandomState(rng_seed))
+        fn_dn = output.value(reset=True, rng=npr.RandomState(rng_seed))
         input.add(small_vect)
             
         fd_grad[in_dims] = (fn_up - fn_dn)/epsilon
