@@ -114,5 +114,5 @@ def test_matrix_value_3():
         out  = kayak.L2Loss(pred, targ, axis=1)
 
         print out.value, np.sum((np_pred-np_targ)**2, axis=1)
-        assert np.all(close_float(out.value, np.sum((np_pred-np_targ)**2, axis=1)))
+        assert np.all(close_float(out.value, np.sum((np_pred-np_targ)**2, axis=1, keepdims=True)))
 

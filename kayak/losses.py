@@ -23,7 +23,8 @@ class L2Loss(Loss):
         self.axis = axis
 
     def _compute_value(self):
-        return np.atleast_1d(np.sum((self.preds.value - self.targs.value)**2, axis=self.axis))
+        return np.sum((self.preds.value - self.targs.value)**2,
+                      axis=self.axis, keepdims=True)
 
     def _local_grad(self, parent, d_out_d_self):
         return 2 * (self.preds.value - self.targs.value) * d_out_d_self
@@ -36,7 +37,8 @@ class LogMultinomialLoss(Loss):
         self.axis = axis
 
     def _compute_value(self):
-        return -np.atleast_1d(np.sum( self.targs.value * self.preds.value, axis=self.axis))
+        return -np.sum(self.targs.value * self.preds.value,
+                       axis=self.axis, keepdims=True)
 
     def _local_grad(self, parent, d_out_d_self):
         return - d_out_d_self * self.targs.value

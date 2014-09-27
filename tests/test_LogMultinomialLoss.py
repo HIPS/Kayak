@@ -43,7 +43,7 @@ def test_matrix_value_1():
         targ = kayak.Targets(np_targ)
         out  = kayak.LogMultinomialLoss(pred, targ)
 
-        assert np.all(close_float(out.value, -np.sum(np_pred * np_targ, axis=1)))
+        assert np.all(close_float(out.value, -np.sum(np_pred * np_targ, axis=1, keepdims=True)))
 
 def test_matrix_grad():
     npr.seed(6)

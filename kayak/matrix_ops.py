@@ -49,12 +49,8 @@ class MatSum(Differentiable):
         self.axis = axis
 
     def _compute_value(self):
-        if self.axis is None:
-            # Handle the sum over all elements.
-            return np.sum(self.A.value).reshape([1] * len(self.A.shape))
-        else:
-            # Handle a sum and reexpansion over one dimension.
-            return np.expand_dims(np.sum(self.A.value, axis=self.axis), axis=self.axis)
+        # Handle a sum and reexpansion over one dimension.
+        return np.sum(self.A.value, axis=self.axis, keepdims=True)
 
     def _local_grad(self, parent, d_out_d_self):
         return d_out_d_self * np.ones(self.A.shape)
