@@ -17,6 +17,8 @@ class MatMult(Differentiable):
 
         if A.shape[1] != B.shape[0]:
             raise Exception("Cannot multiply %s by %s matrices." % (A.shape, B.shape))
+        if len(A.shape) != 2 or len(B.shape) != 2:
+            raise Exception("Inputs of shape %s and %s are not matrices" % (A.shape, B.shape))
         self.A = A
         self.B = B
 
@@ -25,17 +27,9 @@ class MatMult(Differentiable):
 
     def _local_grad(self, parent, d_out_d_self):
         if parent == 0:
-            # Numpy is really, really bad.  Have to handle length-1 vectors differently.
-            if len(self.B.shape) == 1:
-                return np.outer(d_out_d_self, self.B.value)
-            else:
-                return np.dot(d_out_d_self, self.B.value.T)
+            return np.dot(d_out_d_self, self.B.value.T)
         elif parent == 1:
-            # Oh Numpy, you suck so much.
-            if len(self.A.shape) == 1:
-                return np.outer(self.A.value, d_out_d_self)
-            else:
-                return np.dot(self.A.value.T, d_out_d_self)
+            return np.dot(self.A.value.T, d_out_d_self)
         else:
             raise Exception("Not a parent of me")
 
@@ -49,7 +43,6 @@ class MatSum(Differentiable):
         self.axis = axis
 
     def _compute_value(self):
-        # Handle a sum and reexpansion over one dimension.
         return np.sum(self.A.value, axis=self.axis, keepdims=True)
 
     def _local_grad(self, parent, d_out_d_self):
@@ -70,24 +63,10 @@ class MatAdd(Differentiable):
     def _compute_value(self):
         return self.A.value + self.B.value
 
-    def axes_for_sum(self, mat_shape, d_out_d_self_shape):
-        mat_shape = list(mat_shape)
-        d_out_d_self_shape = list(d_out_d_self_shape)
-        to_sum = []
-        for dim, sz in enumerate(d_out_d_self_shape[::-1]):
-            if len(mat_shape) == 0:
-                to_sum.append(len(d_out_d_self_shape)-dim-1)
-            elif mat_shape.pop() == 1:
-                to_sum.append(len(d_out_d_self_shape)-dim-1)
-        return tuple(to_sum[::-1])
-
     def _local_grad(self, parent, d_out_d_self):
-        P = self._parents[parent]
-        if np.atleast_1d(d_out_d_self).shape == P.shape:
-            return d_out_d_self
-        else:
-            broadcast_axes = self.axes_for_sum(P.shape, d_out_d_self.shape)
-            return np.sum(d_out_d_self, axis=broadcast_axes).reshape(P.shape)
+        parent_shape = self._parents[parent].shape
+        sum_axes = tuple(np.where(np.array(parent_shape) == 1)[0])
+        return np.sum(d_out_d_self, axis=sum_axes, keepdims=True)
 
 class MatDet(Differentiable):
     pass
