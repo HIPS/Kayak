@@ -45,8 +45,8 @@ def broadcast(shape1, shape2):
         return tuple(list(broadcast(shape1, shape2)) + [max(d1,d2),])
 
 def logsumexp(X, axis=None):
-    maxes = np.expand_dims(np.max(X, axis=axis), axis=axis)
-    return np.expand_dims(np.log(np.sum(np.exp(X - maxes), axis=axis)), axis=axis) + maxes
+    maxes = np.max(X, axis=axis, keepdims=True)
+    return np.log(np.sum(np.exp(X - maxes), axis=axis, keepdims=True)) + maxes
 
 def onehot(T, num_labels=None):
     if num_labels is None:
