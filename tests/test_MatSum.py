@@ -36,7 +36,6 @@ def test_vector_value_1():
         npX = npr.randn(10,1)
         X = kayak.Parameter( npX )
         Y = kayak.MatSum(X)
-
         # Verify the sum.
         assert close_float(Y.value, np.sum(npX))
 

@@ -72,7 +72,7 @@ class Differentiable(object):
     def _d_out_d_self(self, out):
         if out not in self._grad:
             if self is out:
-                grad = 1.0
+                grad = np.ones(self.shape)
             else:
                 grad = np.zeros(self.shape)
                 for child, parent_index in self._children:

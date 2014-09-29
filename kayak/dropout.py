@@ -10,15 +10,22 @@ from . import Differentiable, EPSILON
 
 class Dropout(Differentiable):
 
-    def __init__(self, X, drop_prob=0.5):
-        super(Dropout, self).__init__()
+    def __init__(self, X, drop_prob=0.5, rng=None):
+        super(Dropout, self).__init__([X])
         self.X         = X
         self.drop_prob = drop_prob
+
+        if rng is None:
+            self._rng = npr.RandomState()
+        else:
+            self._rng = rng
+
         self._enhancement = (1.0 + EPSILON)/(1.0 - self.drop_prob+EPSILON)
         self.draw_new_mask()
 
     def draw_new_mask(self):
-        self._mask = self._enhancement * (npr.rand(*self.X.shape) > self.drop_prob)
+        self._mask = self._enhancement * (self._rng.rand(*self.X.shape)
+                                          > self.drop_prob)
         self._clear_value_cache()
 
     def reinstate_units(self):

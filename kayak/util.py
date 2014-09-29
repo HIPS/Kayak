@@ -32,18 +32,6 @@ def checkgrad(variable, output, epsilon=1e-4):
         
     return np.mean(np.abs((an_grad - fd_grad)/(fd_grad+EPSILON)))
 
-def broadcast(shape1, shape2):
-    shape1 = list(shape1)
-    shape2 = list(shape2)
-    d1 = 1 if len(shape1) == 0 else shape1.pop()
-    d2 = 1 if len(shape2) == 0 else shape2.pop()
-    if d1 > 1 and d2 > 1 and d1 != d2:
-        raise Exception("Invalid shapes for broadcast.")
-    if len(shape1) == 0 and len(shape2) == 0:
-        return (max(d1, d2),)
-    else:
-        return tuple(list(broadcast(shape1, shape2)) + [max(d1,d2),])
-
 def logsumexp(X, axis=None):
     maxes = np.max(X, axis=axis, keepdims=True)
     return np.log(np.sum(np.exp(X - maxes), axis=axis, keepdims=True)) + maxes

@@ -36,7 +36,7 @@ class Batcher(Differentiable):
 
     """
 
-    def __init__(self, batch_size, total_size, random_batches=False):
+    def __init__(self, batch_size, total_size, random_batches=False, rng=None):
         """Constructor for the Kayak Batcher class.
 
         This creates the Batcher, which makes it easy to manage
@@ -54,6 +54,12 @@ class Batcher(Differentiable):
                           should be random or not.
         """
         super(Batcher, self).__init__([])
+
+        if rng is None:
+            self._rng = npr.RandomState()
+        else:
+            self._rng = rng
+
         self.batch_size = batch_size
         self.total_size = total_size
         self.random_batches = random_batches
@@ -76,7 +82,7 @@ class Batcher(Differentiable):
 
         """
         if self.random_batches:
-            self.ordering = npr.permutation(self.total_size)
+            self.ordering = self._rng.permutation(self.total_size)
         else:
             self.ordering = np.arange(self.total_size, dtype=int)
         self.start    = 0

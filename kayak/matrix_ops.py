@@ -4,7 +4,6 @@
 import numpy as np
 
 from .        import Differentiable
-from util     import broadcast
 
 class MatMult(Differentiable):
 
@@ -55,8 +54,6 @@ class MatAdd(Differentiable):
         if len(args) > 0:
             B = MatAdd(B, *args)
         super(MatAdd, self).__init__([A,B])
-        if broadcast(A.shape, B.shape) is None:
-            raise Exception("Matrices are not broadcastable: %s vs %s" % (A.shape, B.shape))
         self.A = A
         self.B = B
 
@@ -65,8 +62,16 @@ class MatAdd(Differentiable):
 
     def _local_grad(self, parent, d_out_d_self):
         parent_shape = self._parents[parent].shape
-        sum_axes = tuple(np.where(np.array(parent_shape) == 1)[0])
-        return np.sum(d_out_d_self, axis=sum_axes, keepdims=True)
+        num_singletons = len(d_out_d_self.shape) - len(parent_shape)
+        if num_singletons > 0:
+            extra_singletons = tuple(range(num_singletons))
+            result = np.sum(d_out_d_self, axis=extra_singletons, keepdims=False)
+        else:
+            result = d_out_d_self
+
+        assert len(result.shape) == len(parent_shape)
+        original_singletons = tuple(np.where(np.array(parent_shape) == 1)[0])
+        return np.sum(result, axis=original_singletons, keepdims=True)
 
 class MatDet(Differentiable):
     pass
