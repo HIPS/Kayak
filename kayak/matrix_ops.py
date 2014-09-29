@@ -73,6 +73,36 @@ class MatAdd(Differentiable):
         original_singletons = tuple(np.where(np.array(parent_shape) == 1)[0])
         return np.sum(result, axis=original_singletons, keepdims=True)
 
+
+class MatElemMult(Differentiable):
+    """
+    Elementwise multiplication of two arrays of the same size.
+    Note: This does not support broadcasting yet. Look at MatAdd for ideas.
+    """
+    def __init__(self, A, B, *args):
+        # Recurse to handle lists of arguments.
+        if len(args) > 0:
+            B = MatElemMult(B, *args)
+
+        super(MatElemMult, self).__init__([A,B])
+
+        if A.shape != B.shape:
+            raise Exception("Matrices are not the same shape: %s vs %s" % (A.shape, B.shape))
+
+        self.A = A
+        self.B = B
+
+    def _compute_value(self):
+        return self.A.value * self.B.value
+
+    def _local_grad(self, parent, d_out_d_self):
+        if parent == 0:
+            return d_out_d_self * self.B.value
+        elif parent == 1:
+            return d_out_d_self * self.A.value
+        else:
+            raise Exception("Not a parent of me")
+
 class MatDet(Differentiable):
     pass
 
