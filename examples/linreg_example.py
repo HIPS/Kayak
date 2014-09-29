@@ -41,8 +41,7 @@ kyk_loss = kayak.MatSum( kyk_el_loss )
 for ii in xrange(100):
 
     for batch in kyk_batcher:
-
-        loss = kyk_loss.value(True)
-        print loss, np.sum((kyk_W.value() - true_W)**2)
+        loss = kyk_loss.value
+        print loss, np.sum((kyk_W.value - true_W)**2)
         grad = kyk_loss.grad(kyk_W)
-        kyk_W.add( -learn * grad )
+        kyk_W.value -= learn * grad
