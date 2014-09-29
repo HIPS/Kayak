@@ -11,7 +11,7 @@ from . import Differentiable, EPSILON
 class Dropout(Differentiable):
 
     def __init__(self, X, drop_prob=0.5, rng=None):
-        super(Dropout, self).__init__()
+        super(Dropout, self).__init__([X])
         self.X         = X
         self.drop_prob = drop_prob
         self._mask     = None
@@ -46,7 +46,7 @@ class Dropout(Differentiable):
         elif self.X.depends(other):
             return self.X.grad(other, self._local_grad(d_out_d_self))
         else:
-            return np.zeros(self.X.shape(reset=False))
+            return np.zeros(self.X.shape())
 
-    def _compute_shape(self, inputs=None):
-        return self.X.shape(inputs, reset=False)
+    def _compute_shape(self, rng=None, inputs=None):
+        return self.X.shape(rng, inputs)
