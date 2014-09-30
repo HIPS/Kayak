@@ -4,13 +4,98 @@ import numpy.random as npr
 import kayak
 
 from . import *
+from nose.tools import assert_equals, assert_less
 
 def test_convolve1d_1():
-    npr.seed(1)
+    npr.seed(3)
 
-    A = npr.randn(20)
-    B = npr.randn(7)
-    for ii in xrange(A.shape[0]):
-        for jj in xrange(B.shape[0]):
-            pass # TODO
-    
+    for ii in xrange(NUM_TRIALS):
+        
+        np_A = npr.randn(5,6)
+        np_B = npr.randn(6,7)
+        A    = kayak.Parameter(np_A)
+        B    = kayak.Parameter(np_B)
+        C    = kayak.Convolve1d(A, B, ncolors=1)
+
+        # If the filters are the same size as the data
+        assert C.value.shape == (5,7)
+
+def test_convolve1d_2():
+    npr.seed(3)
+
+    for ii in xrange(NUM_TRIALS):
+        
+        np_A = npr.randn(5,20)
+        np_B = npr.randn(6,4)
+        A    = kayak.Parameter(np_A)
+        B    = kayak.Parameter(np_B)
+        C    = kayak.Convolve1d(A, B, ncolors=1)
+
+        assert_equals(C.value.shape, (5,(20-6+1)*4))
+
+def test_convolve1d_3():
+    npr.seed(3)
+
+    for ii in xrange(NUM_TRIALS):
+        
+        np_A = npr.randn(5,50)
+        np_B = npr.randn(6*5,4)
+        A    = kayak.Parameter(np_A)
+        B    = kayak.Parameter(np_B)
+        C    = kayak.Convolve1d(A, B, ncolors=5)
+
+        assert_equals(C.value.shape, (5,(10-6+1)*4))
+
+def test_convolve1d_grad_1():
+    npr.seed(3)
+
+    for ii in xrange(NUM_TRIALS):
+        
+        np_A = npr.randn(5,6)
+        np_B = npr.randn(6,7)
+        A    = kayak.Parameter(np_A)
+        B    = kayak.Parameter(np_B)
+        C    = kayak.Convolve1d(A, B)
+        D    = kayak.MatSum(C)
+
+        D.value
+        assert_equals(D.grad(A).shape, (5,6))
+        assert_equals(D.grad(B).shape, (6,7))
+        assert_less(kayak.util.checkgrad(A, D), MAX_GRAD_DIFF)
+        assert_less(kayak.util.checkgrad(B, D), MAX_GRAD_DIFF)
+
+def test_convolve1d_grad_2():
+    npr.seed(3)
+
+    for ii in xrange(NUM_TRIALS):
+        
+        np_A = npr.randn(5,50)
+        np_B = npr.randn(6,7)
+        A    = kayak.Parameter(np_A)
+        B    = kayak.Parameter(np_B)
+        C    = kayak.Convolve1d(A, B)
+        D    = kayak.MatSum(C)
+
+        D.value
+        assert_equals(D.grad(A).shape, (5,50))
+        assert_equals(D.grad(B).shape, (6,7))
+        assert_less(kayak.util.checkgrad(A, D), MAX_GRAD_DIFF)
+        assert_less(kayak.util.checkgrad(B, D), MAX_GRAD_DIFF)
+
+def test_convolve1d_grad_2():
+    npr.seed(3)
+
+    for ii in xrange(NUM_TRIALS):
+        
+        np_A = npr.randn(5,50)
+        np_B = npr.randn(6*5,4)
+        A    = kayak.Parameter(np_A)
+        B    = kayak.Parameter(np_B)
+        C    = kayak.Convolve1d(A, B, ncolors=5)
+        D    = kayak.MatSum(C)
+
+        D.value
+        assert_equals(D.grad(A).shape, (5,50))
+        assert_equals(D.grad(B).shape, (6*5,4))
+        assert_less(kayak.util.checkgrad(A, D), MAX_GRAD_DIFF)
+        assert_less(kayak.util.checkgrad(B, D), MAX_GRAD_DIFF)
