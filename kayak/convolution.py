@@ -37,12 +37,12 @@ class Convolve1d(Differentiable):
         filtersize = self.B.shape[0]/self.ncolors
         if parent == 0:
             output     = np.zeros((self.A.shape[0], self.A.shape[1]))
-            B          = self.B.value.squeeze()
-            output = output.reshape((output.shape[0], -1, self.ncolors))
+            B          = self.B.value
+            output = output.reshape((output.shape[0], self.ncolors, -1))
             outgrad = d_out_d_self.reshape(d_out_d_self.shape[0], -1, B.shape[-1])
             for i in xrange(outgrad.shape[1]):
-                output[:,i:i+filtersize,:] += np.dot(outgrad[:,i,:], B.T).reshape((output.shape[0], filtersize, self.ncolors))
-     
+                output[:,:,i:i+filtersize] += np.dot(outgrad[:,i,:], B.T).reshape((output.shape[0], self.ncolors, filtersize)) 
+
             return output.reshape((output.shape[0], -1))
 
         elif parent == 1:

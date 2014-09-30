@@ -9,7 +9,7 @@ from . import EPSILON
 
 from constants import Parameter
 
-def checkgrad(variable, output, epsilon=1e-4):
+def checkgrad(variable, output, epsilon=1e-4, verbose=False):
     if not isinstance(variable, Parameter):
         raise Exception("Cannot evaluate gradient in terms of non-Parameter type %s", (type(variable)))
 
@@ -30,6 +30,10 @@ def checkgrad(variable, output, epsilon=1e-4):
         variable.value += small_array
         fd_grad[in_dims] = (fn_up - fn_dn)/epsilon
         
+        # Print finite diffs for individual parameters
+        if verbose:
+            print np.abs((an_grad[in_dims] - fd_grad[in_dims])/(fd_grad[in_dims]+EPSILON)), an_grad[in_dims], fd_grad[in_dims]
+
     return np.mean(np.abs((an_grad - fd_grad)/(fd_grad+EPSILON)))
 
 def logsumexp(X, axis=None):
