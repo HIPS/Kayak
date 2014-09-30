@@ -10,10 +10,9 @@ EPSILON = sys.float_info.epsilon
 from differentiable import Differentiable
 from constants      import Constant, Parameter
 from batcher        import Batcher
-from inputs         import Inputs
-from targets        import Targets
+from data_nodes     import DataNode, Inputs, Targets
 from matrix_ops     import MatAdd, MatMult, MatSum, Transpose, Reshape, Concatenate
-from elem_ops       import ElemAdd
+from elem_ops       import ElemAdd, ElemMult, ElemExp, ElemLog
 from nonlinearities import SoftReLU, HardReLU, LogSoftMax
 from losses         import L2Loss, LogMultinomialLoss
 from dropout        import Dropout

@@ -37,8 +37,8 @@ class Convolve1d(Differentiable):
         return output.reshape((A.shape[0], D*B.shape[1]))
 
     def local_grad_A(self, outgrad):
-        filtersize = self.B.shape(reset=False)[0]/self.ncolors
-        output     = np.zeros((self.A.shape(reset=False)[0], self.A.shape()[1]))
+        filtersize = self.B.shape[0]/self.ncolors
+        output     = np.zeros((self.A.shape[0], self.A.shape()[1]))
         B          = self.B.value(False).squeeze()
         output = output.reshape((output.shape[0], -1, self.ncolors))
         outgrad = outgrad.reshape(outgrad.shape[0], -1, B.shape[-1])
@@ -48,13 +48,13 @@ class Convolve1d(Differentiable):
         return output.reshape((output.shape[0], -1))
 
     def local_grad_B(self, outgrad):
-        filtersize = self.B.shape(reset=False)[0]/self.ncolors
-        output     = np.zeros((self.B.shape(reset=False)[0], self.B.shape()[1]))
+        filtersize = self.B.shape[0]/self.ncolors
+        output     = np.zeros((self.B.shape[0], self.B.shape()[1]))
         A          = self.A.value(False)
         A          = np.reshape(A, (A.shape[0], self.ncolors, -1))
-        filtersize = self.B.shape(reset=False)[0]/self.ncolors
+        filtersize = self.B.shape[0]/self.ncolors
         D = A.shape[-1] - filtersize + 1
-        outgrad    = np.reshape(outgrad, (outgrad.shape[0], -1, self.B.shape(reset=False)[1]))
+        outgrad    = np.reshape(outgrad, (outgrad.shape[0], -1, self.B.shape[1]))
         offset = 0
         for j in xrange(outgrad.shape[1]):
             output += np.dot(A[:,:,offset:offset+filtersize].reshape((A.shape[0],-1)).T, outgrad[:,j,:])
@@ -62,7 +62,7 @@ class Convolve1d(Differentiable):
         return output
 
     def _compute_grad(self, other, outgrad):
-        gradient = np.zeros(other.shape(reset=False))
+        gradient = np.zeros(other.shape)
 
         if other == self.A:
             gradient += self.local_grad_A(outgrad)
@@ -80,8 +80,8 @@ class Convolve1d(Differentiable):
         return self.A == other or self.B == other or self.A.depends(other) or self.B.depends(other)
 
     def _compute_shape(self, inputs=None):
-        filtersize = self.B.shape(reset=False)[0]/self.ncolors
+        filtersize = self.B.shape[0]/self.ncolors
         D = self.A.shape(inputs, reset=False)[-1]/self.ncolors - filtersize + 1
-        return (self.A.shape(inputs, reset=False)[0], D*self.B.shape(reset=False)[1])
+        return (self.A.shape(inputs, reset=False)[0], D*self.B.shape[1])
 
 

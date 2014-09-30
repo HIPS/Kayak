@@ -16,7 +16,7 @@ def test_vector_value():
         targ = kayak.Targets(np_targ)
         out  = kayak.LogMultinomialLoss(pred, targ)
 
-        assert close_float(out.value(), -np.sum(np_pred * np_targ))
+        assert close_float(out.value, -np.sum(np_pred * np_targ))
 
 def test_vector_grad():
     npr.seed(4)
@@ -43,7 +43,7 @@ def test_matrix_value_1():
         targ = kayak.Targets(np_targ)
         out  = kayak.LogMultinomialLoss(pred, targ)
 
-        assert np.all(close_float(out.value(), -np.sum(np_pred * np_targ, axis=1)))
+        assert np.all(close_float(out.value, -np.sum(np_pred * np_targ, axis=1, keepdims=True)))
 
 def test_matrix_grad():
     npr.seed(6)
@@ -51,7 +51,7 @@ def test_matrix_grad():
     for ii in xrange(NUM_TRIALS):
         np_pred = npr.randn(10,20)
         np_targ = npr.randn(10,20)
-        
+
         pred = kayak.Parameter(np_pred)
         targ = kayak.Targets(np_targ)
         out  = kayak.MatSum(kayak.LogMultinomialLoss(pred, targ))
@@ -69,4 +69,4 @@ def test_matrix_value_2():
         targ = kayak.Targets(np_targ)
         out  = kayak.LogMultinomialLoss(pred, targ, axis=0)
 
-        assert np.all(close_float(out.value(), -np.sum(np_pred * np_targ, axis=0)))
+        assert np.all(close_float(out.value, -np.sum(np_pred * np_targ, axis=0)))

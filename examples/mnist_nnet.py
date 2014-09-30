@@ -36,6 +36,7 @@ CV = kayak.CrossValidator(10, train_images, train_labels)
 
 # Here I define a nice little training function that takes inputs and targets.
 def train(inputs, targets):
+    dropout_layers = []
 
     # Create a batcher object.
     batcher = kayak.Batcher(batch_size, inputs.shape[0])
@@ -50,6 +51,7 @@ def train(inputs, targets):
 
     # First hidden layer: ReLU + Dropout
     H1 = kayak.Dropout(kayak.HardReLU(kayak.ElemAdd(kayak.MatMult(X, W1), B1)), layer1_dropout)
+    dropout_layers.append(H1)
 
     # Second-layer weights and biases, with random initializations.
     W2 = kayak.Parameter( 0.1*npr.randn( layer1_sz, layer2_sz ))
@@ -57,6 +59,7 @@ def train(inputs, targets):
 
     # Second hidden layer: ReLU + Dropout
     H2 = kayak.Dropout(kayak.HardReLU(kayak.ElemAdd(kayak.MatMult(H1, W2), B2)), layer2_dropout)
+    dropout_layers.append(H2)
 
     # Output layer weights and biases, with random initializations.
     W3 = kayak.Parameter( 0.1*npr.randn( layer2_sz, 10 ))
@@ -69,9 +72,9 @@ def train(inputs, targets):
     loss = kayak.MatSum(kayak.LogMultinomialLoss(Y, T))
 
     # Use momentum for the gradient-based optimization.
-    mom_grad_W1 = np.zeros(W1.shape())
-    mom_grad_W2 = np.zeros(W2.shape())
-    mom_grad_W3 = np.zeros(W3.shape())
+    mom_grad_W1 = np.zeros(W1.shape)
+    mom_grad_W2 = np.zeros(W2.shape)
+    mom_grad_W3 = np.zeros(W3.shape)
 
     # Loop over epochs.
     for epoch in xrange(10):
@@ -81,10 +84,11 @@ def train(inputs, targets):
 
         # Loop over batches -- using batcher as iterator.
         for batch in batcher:
-
+            [layer.draw_new_mask() for layer in dropout_layers]
+        
             # Compute the loss of this minibatch by asking the Kayak
             # object for its value and giving it reset=True.
-            total_loss += loss.value(True)
+            total_loss += loss.value
 
             # Now ask the loss for its gradient in terms of the
             # weights and the biases -- the two things we're trying to
@@ -102,12 +106,12 @@ def train(inputs, targets):
             mom_grad_W3 = momentum*mom_grad_W3 + (1.0-momentum)*grad_W3
 
             # Now make the actual parameter updates.
-            W1.add( -learn_rate * mom_grad_W1 )
-            B1.add( -learn_rate * grad_B1 )
-            W2.add( -learn_rate * mom_grad_W2 )
-            B2.add( -learn_rate * grad_B2 )
-            W3.add( -learn_rate * mom_grad_W3 )
-            B3.add( -learn_rate * grad_B3 )
+            W1.value -= learn_rate * mom_grad_W1
+            B1.value -= learn_rate * grad_B1
+            W2.value -= learn_rate * mom_grad_W2
+            B2.value -= learn_rate * grad_B2
+            W3.value -= learn_rate * mom_grad_W3
+            B3.value -= learn_rate * grad_B3
 
         print epoch, total_loss
 
@@ -120,7 +124,13 @@ def train(inputs, targets):
     # expression.  The point here is that we wind up with a function
     # handle the can be called with a numpy object and it produces the
     # target values for novel data, using the parameters we just learned.
-    return lambda x: Y.value(True, inputs={ X: x })
+
+    def compute_predictions(x):
+        X.value = x
+        [layer.reinstate_units() for layer in dropout_layers]
+        return Y.value
+
+    return compute_predictions
 
 # Loop over our cross validation folds.
 for ii, fold in enumerate(CV):
