@@ -13,7 +13,7 @@ import sys
 class Convolve1d(Differentiable):
 
     def __init__(self, A, B, ncolors=1, axis=-1):
-        super(Differentiable, self).__init__()
+        super(Convolve1d, self).__init__([A,B])
         self.A    = A
         self.B    = B
         self.ncolors = ncolors
