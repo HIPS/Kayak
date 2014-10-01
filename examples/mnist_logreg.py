@@ -8,9 +8,6 @@ num_folds = 5
 sys.path.append('..')
 import kayak
 
-sys.path.append('/Users/rpa/Dropbox/Whetlab/Whetlab-Python-Client')
-import whetlab
-
 # Here I define a nice little training function that takes inputs and targets.
 def train(inputs, targets, batch_size, learn_rate, momentum, l1_weight, l2_weight, dropout):
 
@@ -26,7 +23,8 @@ def train(inputs, targets, batch_size, learn_rate, momentum, l1_weight, l2_weigh
     B    = kayak.Parameter( 0.1*npr.randn(1,10) )
 
     # Nothing fancy here: inputs times weights, plus bias, then softmax.
-    Y    = kayak.LogSoftMax( kayak.ElemAdd( kayak.MatMult(kayak.Dropout(X, dropout), W), B ) )
+    dropout_layer = kayak.Dropout(X, dropout)
+    Y    = kayak.LogSoftMax( kayak.ElemAdd( kayak.MatMult(dropout_layer, W), B ) )
 
     # The training loss is negative multinomial log likelihood.
     loss = kayak.MatAdd(kayak.MatSum(kayak.LogMultinomialLoss(Y, T)),
@@ -34,21 +32,21 @@ def train(inputs, targets, batch_size, learn_rate, momentum, l1_weight, l2_weigh
                         kayak.L1Norm(W, l1_weight))
 
     # Use momentum for the gradient-based optimization.
-    mom_grad_W = np.zeros(W.shape())
+    mom_grad_W = np.zeros(W.shape)
 
     # Loop over epochs.
     for epoch in xrange(10):
 
         # Track the total loss and the overall gradient.
         total_loss   = 0.0
-        total_grad_W = np.zeros(W.shape())
+        total_grad_W = np.zeros(W.shape)
 
         # Loop over batches -- using batcher as iterator.
         for batch in batcher:
-
+            dropout_layer.draw_new_mask()
             # Compute the loss of this minibatch by asking the Kayak
             # object for its value and giving it reset=True.
-            total_loss += loss.value(True)
+            total_loss += loss.value
 
             # Now ask the loss for its gradient in terms of the
             # weights and the biases -- the two things we're trying to
@@ -60,8 +58,8 @@ def train(inputs, targets, batch_size, learn_rate, momentum, l1_weight, l2_weigh
             mom_grad_W = momentum*mom_grad_W + (1.0-momentum)*grad_W
 
             # Now make the actual parameter updates.
-            W.add( -learn_rate * mom_grad_W )
-            B.add( -learn_rate * grad_B )
+            W.value -= learn_rate * mom_grad_W
+            B.value -= learn_rate * grad_B
 
             # Keep track of the gradient to see if we're converging.
             total_grad_W += grad_W
@@ -77,7 +75,13 @@ def train(inputs, targets, batch_size, learn_rate, momentum, l1_weight, l2_weigh
     # expression.  The point here is that we wind up with a function
     # handle the can be called with a numpy object and it produces the
     # target values for novel data, using the parameters we just learned.
-    return lambda x: Y.value(True, inputs={ X: x })
+    
+    def compute_predictions(x):
+        X.value = x
+        dropout_layer.reinstate_units()
+        return Y.value
+
+    return compute_predictions
 
 def evaluate(batch_size, learn_rate, momentum, l1_weight, l2_weight, dropout):
 
@@ -107,7 +111,8 @@ def evaluate(batch_size, learn_rate, momentum, l1_weight, l2_weight, dropout):
         valid_images, valid_labels = fold.valid()
 
         # Train on these data and get a prediction function back.
-        pred_func = train(train_images, train_labels, batch_size, learn_rate, momentum, l1_weight, l2_weight, dropout)
+        pred_func = train(train_images, train_labels, batch_size,
+                          learn_rate, momentum, l1_weight, l2_weight, dropout)
 
         # Make predictions on the validation data.
         valid_preds = np.argmax(pred_func( valid_images ), axis=1)

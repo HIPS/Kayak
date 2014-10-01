@@ -12,17 +12,47 @@ class Elementwise(Differentiable):
         super(Elementwise, self).__init__()
         self.X = X
 
-    def shape(self, inputs=None):
-        return self.X.shape(inputs)
+    def _compute_shape(self, inputs=None):
+        return self.X.shape
 
-    def depends(self, other):
-        return self.X == other or self.X.depends(other)
-
-# Just an alias for matrix addition.
+# Just an alias for matrix addition and elementwise multiplication.
 ElemAdd = matrix_ops.MatAdd
+ElemMult = matrix_ops.MatElemMult
+
 
 class ElemExp(Elementwise):
-    pass
+    """
+    Elementwise exponentiation of an array
+    """
+    def __init__(self, A):
+        super(ElemExp, self).__init__(A)
+
+        self.A = A
+
+    def _compute_value(self):
+        return np.exp(self.A.value)
+
+    def _local_grad(self, parent, d_out_d_self):
+        if parent == 0:
+            return d_out_d_self * np.exp(self.A.value)
+        else:
+            raise Exception("Not a parent of me")
+
 
 class ElemLog(Elementwise):
-    pass
+    """
+    Elementwise logarithm of an array
+    """
+    def __init__(self, A):
+        super(ElemLog, self).__init__([A])
+
+        self.A = A
+
+    def _compute_value(self):
+        return np.log(self.A.value)
+
+    def _local_grad(self, parent, d_out_d_self):
+        if parent == 0:
+            return d_out_d_self / self.A.value
+        else:
+            raise Exception("Not a parent of me")

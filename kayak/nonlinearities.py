@@ -10,23 +10,8 @@ from . import Differentiable
 class Nonlinearity(Differentiable):
 
     def __init__(self, X):
-        super(Nonlinearity, self).__init__()
+        super(Nonlinearity, self).__init__([X])
         self.X = X
-
-    def compute_grad(self, other, outgrad=1.0):
-        if other == self.X:
-            return self.local_grad(outgrad)
-        elif self.X.depends(other):
-            return self.X.grad(other, self.local_grad(outgrad))
-        else:
-            return np.zeros(other.shape())
-
-    def depends(self, other):
-        return self.X == other or self.X.depends(other)
-
-    def shape(self, inputs=None):
-        return self.X.shape(inputs)
-
 
 class SoftReLU(Nonlinearity):
 
@@ -34,9 +19,9 @@ class SoftReLU(Nonlinearity):
         super(SoftReLU, self).__init__(X)
         self.scale  = scale
 
-    def compute_value(self, reset, rng, inputs):
+    def _compute_value(self):
         # Somewhat complicated to handle overflow.
-        X            = self.X.value(reset, rng, inputs)
+        X            = self.X.value
         se           = np.seterr(over='ignore')
         exp_X        = np.exp(X / self.scale)
         result       = np.log(1.0 + np.exp( X/self.scale ))*self.scale
@@ -44,31 +29,42 @@ class SoftReLU(Nonlinearity):
         result[over] = X[over]/self.scale
         return result
 
-    def local_grad(self, outgrad):
-        return outgrad/(1.0 + np.exp( - self.X.value()/self.scale ))
-
+    def _local_grad(self, parent, d_out_d_self):
+        return d_out_d_self/(1.0 + np.exp( - self.X.value/self.scale ))
 
 class HardReLU(Nonlinearity):
 
     def __init__(self, X):
         super(HardReLU, self).__init__(X)
 
-    def compute_value(self, reset, rng, inputs):
-        return np.maximum(self.X.value(reset, rng, inputs), 0.0)
+    def _compute_value(self):
+        return np.maximum(self.X.value, 0.0)
 
-    def local_grad(self, outgrad):
-        return outgrad * (self.X.value() > 0)
+    def _local_grad(self, parent, d_out_d_self):
+        return d_out_d_self * (self.X.value > 0)
 
 class TanH(Nonlinearity):
 
     def __init__(self, X):
         super(TanH, self).__init__(X)
 
-    def compute_value(self, reset, rng, inputs):
-        return np.tanh(self.X.value(reset, rng, inputs))
+    def _compute_value(self):
+        return np.tanh(self.X.value)
 
-    def local_grad(self, outgrad):
-        return 1.0 - np.tanh(self.X.value())**2
+    def _local_grad(self, parent, d_out_d_self):
+        return 1.0 - np.tanh(self.X.value)**2
+
+class Logistic(Nonlinearity):
+
+    def __init__(self, X):
+        super(Logistic, self).__init__(X)
+
+    def _compute_value(self):
+        return 1.0/(1.0 + np.exp(-self.X.value))
+
+    def _local_grad(self, parent, d_out_d_self):
+        y = 1.0/(1.0 + np.exp(-self.X.value))
+        return y*(1.0-y)
 
 class LogSoftMax(Nonlinearity):
 
@@ -76,9 +72,25 @@ class LogSoftMax(Nonlinearity):
         super(LogSoftMax, self).__init__(X)
         self.axis = axis
 
-    def compute_value(self, reset, rng, inputs):
-        X = self.X.value(reset, rng, inputs)
+    def _compute_value(self):
+        X = self.X.value
         return X - util.logsumexp(X, axis=self.axis)
 
-    def local_grad(self, outgrad):
-        return outgrad - (np.exp(self.value()) * np.expand_dims(np.sum(outgrad, axis=self.axis), axis=self.axis))
+    def _local_grad(self, parent, d_out_d_self):
+        return d_out_d_self - (np.exp(self.value) * np.sum(d_out_d_self, axis=self.axis, keepdims=True))
+
+
+class SoftMax(Nonlinearity):
+
+    def __init__(self, X, axis=1):
+        super(SoftMax, self).__init__(X)
+        self.axis = axis
+
+    def _compute_value(self):
+        X = self.X.value
+        return np.exp(X - util.logsumexp(X, axis=self.axis))
+
+    def _local_grad(self, parent, d_out_d_self):
+        oldgrad = d_out_d_self - (np.exp(self.value) * np.sum(d_out_d_self, axis=self.axis, keepdims=True))
+        X = self.X.value
+        return oldgrad * np.exp(np.exp(X - util.logsumexp(X, axis=self.axis)))

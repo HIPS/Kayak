@@ -18,8 +18,8 @@ def test_logsoftmax_values_1():
         np_Y = np_Y / np.sum(np_Y, axis=1)[:,np.newaxis]
         np_Y = np.log(np_Y)
 
-        assert Y.shape() == np_X.shape
-        assert np.all(close_float(Y.value(True), np_Y))
+        assert Y.shape == np_X.shape
+        assert np.all(close_float(Y.value, np_Y))
 
 def test_logsoftmax_values_2():
     npr.seed(2)
@@ -34,8 +34,8 @@ def test_logsoftmax_values_2():
         np_Y = np_Y / np.sum(np_Y, axis=0)[np.newaxis,:]
         np_Y = np.log(np_Y)
 
-        assert Y.shape() == np_X.shape
-        assert np.all(close_float(Y.value(True), np_Y))
+        assert Y.shape == np_X.shape
+        assert np.all(close_float(Y.value, np_Y))
 
 def test_logsoftmax_grad_1():
     npr.seed(3)

@@ -4,27 +4,27 @@ import numpy.random as npr
 import kayak
 
 from . import *
+from nose.tools import assert_less
 
-def test_softrelu_values():
+def test_tanh_values():
     npr.seed(1)
 
     for ii in xrange(NUM_TRIALS):
         np_X = npr.randn(6,5)
         X    = kayak.Parameter(np_X)
-        Y    = kayak.SoftReLU(X)
+        Y    = kayak.TanH(X)
 
-        assert np.all( Y.value >= 0.0 )
-        assert np.all(close_float(np.log(1.0 + np.exp(np_X)), Y.value))
+        assert np.all(close_float(np.tanh(np_X), Y.value))
         
-def test_softrelu_grad():
+def test_tanh_grad():
     npr.seed(2)
 
     for ii in xrange(NUM_TRIALS):
         np_X = npr.randn(6,5)
         X    = kayak.Parameter(np_X)
-        Y    = kayak.SoftReLU(X)
+        Y    = kayak.TanH(X)
         Z    = kayak.MatSum(Y)
 
         Z.value
         assert np.all( Z.grad(X) >= 0.0 )
-        assert kayak.util.checkgrad(X, Z) < MAX_GRAD_DIFF
+        assert_less(kayak.util.checkgrad(X, Z), MAX_GRAD_DIFF)

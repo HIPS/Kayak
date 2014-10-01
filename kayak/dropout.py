@@ -11,44 +11,30 @@ from . import Differentiable, EPSILON
 class Dropout(Differentiable):
 
     def __init__(self, X, drop_prob=0.5, rng=None):
-        super(Dropout, self).__init__()
+        super(Dropout, self).__init__([X])
         self.X         = X
         self.drop_prob = drop_prob
-        self._mask     = None
 
         if rng is None:
-            self.rng = npr.RandomState()
-        elif type(rng) == int:
-            self.rng = npr.RandomState(rng)
+            self._rng = npr.RandomState()
         else:
-            self.rng = rng
+            self._rng = rng
 
-    def compute_value(self, reset, rng, inputs):
-        if inputs is None:
-            # If someone gave us an RNG, use it and pass it on.
-            # Otherwise, use the instance-specific RNG.
-            local_rng = self.rng if rng is None else rng
-            self._mask  = local_rng.rand(*self.X.shape(inputs)) > self.drop_prob
+        self._enhancement = (1.0 + EPSILON)/(1.0 - self.drop_prob+EPSILON)
+        self.draw_new_mask()
 
-            return ((1.0+EPSILON)/(1.0-self.drop_prob+EPSILON)) * self._mask * self.X.value(reset, rng, inputs)
+    def draw_new_mask(self):
+        self._mask = self._enhancement * (self._rng.rand(*self.X.shape)
+                                          > self.drop_prob)
+        self._clear_value_cache()
 
-        else:
-            # Assume we're at test time if there are inputs.
-            return self.X.value(reset, rng, inputs)
+    def reinstate_units(self):
+        self._mask = np.ones(self.X.shape)
+        self._clear_value_cache()
 
-    def local_grad(self, outgrad):
-        return outgrad * self._mask * ((1.0 + EPSILON)/(1.0-self.drop_prob + EPSILON))
+    def _compute_value(self):
+        return self._mask * self.X.value
 
-    def compute_grad(self, other, outgrad):
-        if other == self.X:
-            return self.local_grad(outgrad)
-        elif self.X.depends(other):
-            return self.X.grad(other, self.local_grad(outgrad))
-        else:
-            return np.zeros(self.X.shape())
+    def _local_grad(self, parent, d_out_d_self):
+        return d_out_d_self * self._mask
 
-    def depends(self, other):
-        return other == self.X or self.X.depends(other)
-
-    def shape(self, inputs=None):
-        return self.X.shape(inputs)

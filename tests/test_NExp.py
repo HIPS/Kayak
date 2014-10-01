@@ -14,7 +14,7 @@ def test_scalar_value():
         X   = kayak.Parameter(np_X)
         out = kayak.NExp(X)
 
-        assert close_float(out.value(True), 1.0 - np.exp(-np.abs(np_X)))
+        assert close_float(out.value, 1.0 - np.exp(-np.abs(np_X)))
 
 def test_scalar_grad():
     npr.seed(2)
@@ -40,7 +40,7 @@ def test_scalar_value_2():
         X   = kayak.Parameter(np_X)
         out = kayak.NExp(X, weight=wt)
 
-        assert close_float(out.value(True), wt * (1.0 - np.exp(-np.abs(np_X))))
+        assert close_float(out.value, wt * (1.0 - np.exp(-np.abs(np_X))))
 
 def test_scalar_grad_2():
     npr.seed(4)
@@ -67,7 +67,7 @@ def test_vector_value():
         X   = kayak.Parameter(np_X)
         out = kayak.NExp(X, weight=wt)
 
-        assert close_float(out.value(True), wt * np.sum(1.0 - np.exp(-np.abs(np_X))))
+        assert close_float(out.value, wt * np.sum(1.0 - np.exp(-np.abs(np_X))))
 
 def test_vector_grad():
     npr.seed(6)
@@ -94,7 +94,7 @@ def test_matrix_value():
         X   = kayak.Parameter(np_X)
         out = kayak.NExp(X, weight=wt)
 
-        assert close_float(out.value(True), wt * np.sum(1.0 - np.exp(-np.abs(np_X))))
+        assert close_float(out.value, wt * np.sum(1.0 - np.exp(-np.abs(np_X))))
 
 def test_matrix_grad():
     npr.seed(8)
@@ -121,7 +121,7 @@ def test_tensor_value():
         X   = kayak.Parameter(np_X)
         out = kayak.NExp(X, weight=wt)
 
-        assert close_float(out.value(True), wt * np.sum(1.0 - np.exp(-np.abs(np_X))))
+        assert close_float(out.value, wt * np.sum(1.0 - np.exp(-np.abs(np_X))))
 
 def test_tensor_grad():
     npr.seed(10)

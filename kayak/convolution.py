@@ -6,19 +6,19 @@ import numpy as np
 import util
 
 from . import Differentiable
+import sys
 
 class Convolve1d(Differentiable):
 
-    def __init__(self, A, B, ncolors=1, axis=-1):
-        super(Differentiable, self).__init__()
+    def __init__(self, A, B, ncolors=1):
+        super(Convolve1d, self).__init__([A,B])
         self.A    = A
         self.B    = B
         self.ncolors = ncolors
-        self.axis = axis
 
-    def compute_value(self, reset, rng, inputs):
-        A = self.A.value(reset=reset, rng=rng)
-        B = self.B.value(reset=reset, rng=rng)
+    def _compute_value(self):
+        A = self.A.value
+        B = self.B.value
         filtersize = B.shape[0]/self.ncolors
 
         # Broadcast to get color channels
@@ -33,50 +33,30 @@ class Convolve1d(Differentiable):
 
         return output.reshape((A.shape[0], D*B.shape[1]))
 
-    def local_grad_A(self, outgrad):
-        filtersize = self.B.shape()[0]/self.ncolors
-        output     = np.zeros((self.A.shape()[0], self.A.shape()[1]))
-        B          = self.B.value().squeeze()
-        outgrad = outgrad.reshape(outgrad.shape[0], -1, B.shape[1])
-        for i in xrange(output.shape[1]-filtersize+1):
-            output[:,i:i+filtersize] += np.dot(outgrad[:,i,:], B.T)
- 
-        return output
+    def _local_grad(self, parent, d_out_d_self):
+        filtersize = self.B.shape[0]/self.ncolors
+        if parent == 0:
+            output     = np.zeros((self.A.shape[0], self.A.shape[1]))
+            B          = self.B.value
+            output = output.reshape((output.shape[0], self.ncolors, -1))
+            outgrad = d_out_d_self.reshape(d_out_d_self.shape[0], -1, B.shape[-1])
+            for i in xrange(outgrad.shape[1]):
+                output[:,:,i:i+filtersize] += np.dot(outgrad[:,i,:], B.T).reshape((output.shape[0], self.ncolors, filtersize)) 
 
-    def local_grad_B(self, outgrad):
-        filtersize = self.B.shape()[0]/self.ncolors
-        output     = np.zeros((self.B.shape()[0], self.B.shape()[1]))
-        A          = self.A.value()
-        A          = np.reshape(A, (A.shape[0], self.ncolors, -1))
-        filtersize = self.B.shape()[0]/self.ncolors
-        D = A.shape[-1] - filtersize + 1
-        outgrad    = np.reshape(outgrad, (outgrad.shape[0], -1, self.B.shape()[1]))
-        offset = 0
-        for j in xrange(outgrad.shape[1]):
-            output += np.dot(A[:,:,offset:offset+filtersize].reshape((A.shape[0],-1)).T, outgrad[:,j,:])
-            offset += 1
-        return output
+            return output.reshape((output.shape[0], -1))
 
-    def compute_grad(self, other, outgrad):
-        gradient = np.zeros(other.shape())
+        elif parent == 1:
+            output     = np.zeros((self.B.shape[0], self.B.shape[1]))
+            A          = self.A.value
+            A          = np.reshape(A, (A.shape[0], self.ncolors, -1))
+            filtersize = self.B.shape[0]/self.ncolors
+            outgrad    = np.reshape(d_out_d_self, (d_out_d_self.shape[0], -1, self.B.shape[1]))
+            offset = 0
+            for j in xrange(outgrad.shape[1]):
+                output += np.dot(A[:,:,offset:offset+filtersize].reshape((A.shape[0],-1)).T, outgrad[:,j,:])
+                offset += 1
+            return output
+        else:   
+            raise Exception("Not a parent of me")            
 
-        if other == self.A:
-            gradient += self.local_grad_A(outgrad)
-        elif self.A.depends(other):
-            gradient += self.A.grad(other, self.local_grad_A(outgrad))
-
-        if other == self.B:
-            gradient += self.local_grad_B(outgrad)
-        elif self.B.depends(other):
-            gradient += self.B.grad(other, self.local_grad_B(outgrad))
-
-        return gradient
-
-    def depends(self, other):
-        return self.A == other or self.B == other or self.A.depends(other) or self.B.depends(other)
-
-    def shape(self, inputs=None):
-        filtersize = self.B.shape()[0]/self.ncolors
-        D = self.A.shape()[-1]/self.ncolors - filtersize + 1
-        return (self.A.shape()[0], D*self.B.shape()[1])
 

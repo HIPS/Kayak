@@ -1,7 +1,9 @@
 import time
 import numpy        as np
 import numpy.random as npr
+import sys
 
+sys.path.append('..')
 import kayak
 import kayak.util
 
@@ -44,20 +46,21 @@ kyk_el_loss = kayak.L2Loss(kyk_out, kyk_targets)
 kyk_loss = kayak.MatSum( kyk_el_loss )
 
 # Roll in the weight regularization.
-kyk_obj = kayak.ElemAdd( kyk_loss, kayak.L1Norm(kyk_W1, scale=100.0), kayak.L1Norm(kyk_W2, scale=100.0))
+kyk_obj = kayak.ElemAdd( kyk_loss, kayak.L1Norm(kyk_W1, weight=100.0),
+                         kayak.L1Norm(kyk_W2, weight=100.0))
 
 print "W2:", kayak.util.checkgrad(kyk_W2, kyk_obj)
 print "B2:", kayak.util.checkgrad(kyk_B2, kyk_obj)
 print "W1:", kayak.util.checkgrad(kyk_W1, kyk_obj)
 print "B1:", kayak.util.checkgrad(kyk_B1, kyk_obj)
 
-
 t0 = time.time()
 for ii in xrange(10):
 
     for batch in batcher:
-
-        val = kyk_obj.value(True)
+        kyk_H1.draw_new_mask()
+        kyk_out.draw_new_mask()
+        val = kyk_obj.value
         grad_W1 = kyk_obj.grad(kyk_W1)
         grad_B1 = kyk_obj.grad(kyk_B1)
         grad_W2 = kyk_obj.grad(kyk_W2)
