@@ -109,7 +109,7 @@ class Differentiable(object):
 
     def __neg__(self):
         from . import ElemMult, Constant
-        return ElemMult(Constant(-1*np.ones(self.shape)), self)
+        return ElemMult(Constant(-1), self)
 
 
 

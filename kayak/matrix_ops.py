@@ -86,8 +86,8 @@ class MatElemMult(Differentiable):
 
         super(MatElemMult, self).__init__([A,B])
 
-        if A.shape != B.shape:
-            raise Exception("Matrices are not the same shape: %s vs %s" % (A.shape, B.shape))
+        # if A.shape != B.shape:
+        #     raise Exception("Matrices are not the same shape: %s vs %s" % (A.shape, B.shape))
 
         self.A = A
         self.B = B
@@ -96,12 +96,31 @@ class MatElemMult(Differentiable):
         return self.A.value * self.B.value
 
     def _local_grad(self, parent, d_out_d_self):
-        if parent == 0:
-            return d_out_d_self * self.B.value
-        elif parent == 1:
-            return d_out_d_self * self.A.value
+        """
+        For element-wise multiplication d(A*B)/dA = d_out_d_self * B.
+        However, to support  broadcasting, we need to sum over the broadcast dimensions.
+        For  example, d(A*x)/dx, where A is a matrix and x is a scalar, is
+        given by \sum_{d1} \ldots \sum_{dD} (d_out_d_self * A)[d1,...,dD]
+        """
+        parent_shape = self._parents[parent].shape
+        other_parent = 1 if parent == 0 else 0
+        other_parent_value = self._parents[other_parent].value
+
+        # Compute how many dimensions was parent broadcast along
+        num_singletons = len(d_out_d_self.shape) - len(parent_shape)
+        if num_singletons > 0:
+            extra_singletons = tuple(range(num_singletons))
+            # Sum out the broadcast dimensions
+            result = np.sum(d_out_d_self*other_parent_value, axis=extra_singletons, keepdims=False)
         else:
-            raise Exception("Not a parent of me")
+            result = d_out_d_self*other_parent_value
+
+        # In mutliplying, we may have broadcast the parent.
+        # Sum out those dimensions as well.
+        assert len(result.shape) == len(parent_shape)
+        original_singletons = tuple(np.where(np.array(parent_shape) == 1)[0])
+        return np.sum(result, axis=original_singletons, keepdims=True)
+
 
 class MatDet(Differentiable):
     pass
