@@ -95,3 +95,21 @@ class Differentiable(object):
 
     def _compute_value(self):
         raise Exception("Class 'Differentiable' is abstract.")
+
+    # Overload plus and times operators with elementwise operations
+    # To avoid circular imports, we wait until the operator is called
+    # to import the subclasses of Differentiable
+    def __add__(self, other):
+        from . import ElemAdd
+        return ElemAdd(self, other)
+
+    def __mul__(self, other):
+        from . import ElemMult
+        return ElemMult(self, other)
+
+    def __neg__(self):
+        from . import ElemMult, Constant
+        return ElemMult(Constant(-1*np.ones(self.shape)), self)
+
+
+
