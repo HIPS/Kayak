@@ -52,7 +52,7 @@ class TanH(Nonlinearity):
         return np.tanh(self.X.value)
 
     def _local_grad(self, parent, d_out_d_self):
-        return 1.0 - np.tanh(self.X.value)**2
+        return d_out_d_self*(1.0 - np.tanh(self.X.value)**2)
 
 class Logistic(Nonlinearity):
 
