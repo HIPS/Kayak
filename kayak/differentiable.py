@@ -63,7 +63,12 @@ class Differentiable(object):
           other: (Kayak object) The other object, in terms of which
                  you'd like to take this thing's gradient.
         """
-        return other._d_out_d_self(self)
+        grad = other._d_out_d_self(self)
+        if grad is 0:
+            # Make sure the output has the expected shape
+            grad = np.zeros(other.shape)
+
+        return grad
 
     @property
     def shape(self):
@@ -76,10 +81,8 @@ class Differentiable(object):
             elif not self._children:
                 grad = 0
             else:
-                grad = np.zeros(self.shape)
-                for child, parent_index in self._children:
-                    grad += child._d_out_d_parent(out, parent_index)
-
+                grad = sum(child._d_out_d_parent(out, parent_index)
+                           for child, parent_index in self._children)
             self._grad[out] = grad
 
         return self._grad[out]
