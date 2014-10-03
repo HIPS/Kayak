@@ -100,16 +100,36 @@ class Differentiable(object):
     # To avoid circular imports, we wait until the operator is called
     # to import the subclasses of Differentiable
     def __add__(self, other):
-        from . import ElemAdd
+        from . import ElemAdd, Constant
+
+        # If other is not a Differentiable object,
+        # try to cast it as a constant.
+        if not isinstance(other, Differentiable):
+            import pdb; pdb.set_trace()
+            other = Constant(other)
         return ElemAdd(self, other)
 
+    def __radd__(self, other):
+        return self.__add__(other)
+
+    def __sub__(self, other):
+        return self + -other
+
     def __mul__(self, other):
-        from . import ElemMult
+        from . import ElemMult, Constant
+        # If other is not a Differentiable object,
+        # try to cast it as a constant.
+        if not isinstance(other, Differentiable):
+            import pdb; pdb.set_trace()
+            other = Constant(other)
         return ElemMult(self, other)
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
 
     def __neg__(self):
         from . import ElemMult, Constant
-        return ElemMult(Constant(-1), self)
+        return ElemMult(Constant(-1.), self)
 
 
 

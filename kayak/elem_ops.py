@@ -9,7 +9,7 @@ import matrix_ops
 class Elementwise(Differentiable):
 
     def __init__(self, X):
-        super(Elementwise, self).__init__()
+        super(Elementwise, self).__init__(X)
         self.X = X
 
     def _compute_shape(self, inputs=None):
@@ -25,7 +25,7 @@ class ElemExp(Elementwise):
     Elementwise exponentiation of an array
     """
     def __init__(self, A):
-        super(ElemExp, self).__init__(A)
+        super(ElemExp, self).__init__([A])
 
         self.A = A
 
