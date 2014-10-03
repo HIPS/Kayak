@@ -18,7 +18,8 @@ def checkgrad(variable, output, epsilon=1e-4, verbose=False):
 
     value = output.value
     an_grad = output.grad(variable)
-    fd_grad = np.zeros(an_grad.shape)
+    print "an_grad", an_grad
+    fd_grad = np.zeros(variable.shape)
 
     for in_dims in it.product(*map(range, variable.shape)):
         small_array = np.zeros(variable.shape)
