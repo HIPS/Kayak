@@ -18,24 +18,31 @@ def checkgrad(variable, output, epsilon=1e-4, verbose=False):
 
     value = output.value
     an_grad = output.grad(variable)
-    print "an_grad", an_grad
     fd_grad = np.zeros(variable.shape)
-
+    base_value = variable.value.copy()
     for in_dims in it.product(*map(range, variable.shape)):
         small_array = np.zeros(variable.shape)
-        small_array[in_dims] = epsilon/2.0
-        variable.value += small_array
-        fn_up = output.value
-        variable.value -= 2 * small_array
-        fn_dn = output.value
-        variable.value += small_array
-        fd_grad[in_dims] = (fn_up - fn_dn)/epsilon
-        
-        # Print finite diffs for individual parameters
+        small_array[in_dims] = epsilon
+
+        variable.value = base_value - 2*small_array
+        fn_l2 = output.value
+        variable.value = base_value - small_array
+        fn_l1 = output.value
+        variable.value = base_value + small_array
+        fn_r1 = output.value
+        variable.value = base_value + 2*small_array
+        fn_r2 = output.value
+
+        fd_grad[in_dims] = ((fn_l2 - fn_r2)/12. + (- fn_l1 + fn_r1)*2./3.) /epsilon # 2nd order method
+        # fd_grad[in_dims] = (- fn_l1/2. + fn_r1/2.) /epsilon # 1st order method
+
         if verbose:
             print np.abs((an_grad[in_dims] - fd_grad[in_dims])/(fd_grad[in_dims]+EPSILON)), an_grad[in_dims], fd_grad[in_dims]
 
+    variable.value = base_value
+    print "Mean finite difference", np.mean(np.abs((an_grad - fd_grad)/(fd_grad+EPSILON)))
     return np.mean(np.abs((an_grad - fd_grad)/(fd_grad+EPSILON)))
+
 
 def logsumexp(X, axis=None):
     maxes = np.max(X, axis=axis, keepdims=True)
