@@ -63,7 +63,12 @@ class Differentiable(object):
           other: (Kayak object) The other object, in terms of which
                  you'd like to take this thing's gradient.
         """
-        return other._d_out_d_self(self)
+        grad = other._d_out_d_self(self)
+        if grad is 0:
+            # Make sure the output has the expected shape
+            grad = np.zeros(other.shape)
+
+        return grad
 
     @property
     def shape(self):
