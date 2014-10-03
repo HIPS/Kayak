@@ -56,3 +56,46 @@ class ElemLog(Elementwise):
             return d_out_d_self / self.A.value
         else:
             raise Exception("Not a parent of me")
+
+
+class ElemPower(Elementwise):
+    """
+    Elementwise power of an array.
+
+    NOTE: Fractional powers are only defined for positive bases.
+          We do not check for this; numpy will throw a runtime exception.
+    """
+    def __init__(self, A, pow):
+        super(ElemPower, self).__init__([A])
+
+        self.A = A
+
+        assert np.isscalar(pow), 'Power must be a scalar value.'
+        self.pow = pow
+
+    def _compute_value(self):
+        return np.power(self.A.value, self.pow)
+
+    def _local_grad(self, parent, d_out_d_self):
+        if parent == 0:
+            return d_out_d_self * self.pow * np.power(self.A.value, self.pow-1)
+        else:
+            raise Exception("Not a parent of me")
+
+class ElemAbs(Elementwise):
+    """
+    Elementwise absolute value of an array.
+    """
+    def __init__(self, A):
+        super(ElemAbs, self).__init__([A])
+
+        self.A = A
+
+    def _compute_value(self):
+        return abs(self.A.value)
+
+    def _local_grad(self, parent, d_out_d_self):
+        if parent == 0:
+            return d_out_d_self * np.sign(self.A.value)
+        else:
+            raise Exception("Not a parent of me")

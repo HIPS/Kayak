@@ -12,7 +12,7 @@ from constants      import Constant, Parameter
 from batcher        import Batcher
 from data_nodes     import DataNode, Inputs, Targets
 from matrix_ops     import MatAdd, MatMult, MatSum, Transpose, Reshape, Concatenate
-from elem_ops       import ElemAdd, ElemMult, ElemExp, ElemLog
+from elem_ops       import ElemAdd, ElemMult, ElemExp, ElemLog, ElemPower, ElemAbs
 from nonlinearities import SoftReLU, HardReLU, LogSoftMax, TanH
 from losses         import L2Loss, LogMultinomialLoss
 from dropout        import Dropout

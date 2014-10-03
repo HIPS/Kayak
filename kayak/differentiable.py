@@ -105,7 +105,6 @@ class Differentiable(object):
         # If other is not a Differentiable object,
         # try to cast it as a constant.
         if not isinstance(other, Differentiable):
-            import pdb; pdb.set_trace()
             other = Constant(other)
         return ElemAdd(self, other)
 
@@ -120,16 +119,32 @@ class Differentiable(object):
         # If other is not a Differentiable object,
         # try to cast it as a constant.
         if not isinstance(other, Differentiable):
-            import pdb; pdb.set_trace()
             other = Constant(other)
         return ElemMult(self, other)
 
     def __rmul__(self, other):
         return self.__mul__(other)
 
+    # NOTE: Assuming Python 2.x syntax for div
+    def __div__(self, other):
+        from . import ElemPower
+        return self * ElemPower(other, -1)
+
+    def __rdiv__(self, other):
+        from . import ElemPower
+        return other * ElemPower(self, -1)
+
     def __neg__(self):
         from . import ElemMult, Constant
         return ElemMult(Constant(-1.), self)
+
+    def __pow__(self, power, modulo=None):
+        from . import ElemPower
+        return ElemPower(self, power)
+
+    def __abs__(self):
+        from . import ElemAbs
+        return ElemAbs(self)
 
 
 
