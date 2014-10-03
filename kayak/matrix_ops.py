@@ -34,15 +34,16 @@ class MatMult(Differentiable):
 
 class MatSum(Differentiable):
      
-    def __init__(self, A, axis=None):
+    def __init__(self, A, axis=None, keepdims=True):
         super(MatSum, self).__init__([A])
         if axis is not None and type(axis) != int:
             raise Exception("Can only sum over one axis at a time.")
         self.A    = A
         self.axis = axis
+        self.keepdims = keepdims
 
     def _compute_value(self):
-        return np.sum(self.A.value, axis=self.axis, keepdims=True)
+        return np.sum(self.A.value, axis=self.axis, keepdims=self.keepdims)
 
     def _local_grad(self, parent, d_out_d_self):
         return d_out_d_self * np.ones(self.A.shape)

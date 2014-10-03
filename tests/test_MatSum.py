@@ -193,3 +193,29 @@ def test_tensor_value_4():
         Y   = kayak.MatSum(X, axis=0)
         
         assert np.all(close_float(Y.value, np.expand_dims(np.sum(npX, axis=0), axis=0)))
+
+def test_keepdims_value_1():
+    npr.seed(9)
+
+    for ii in xrange(NUM_TRIALS):
+        npX = npr.randn(10,20)
+        X   = kayak.Parameter( npX )
+        Y   = kayak.MatSum(X, axis=0, keepdims=False)
+        Z   = kayak.MatSum(Y)
+
+        assert Y.shape == np.sum(npX, axis=0, keepdims=False).shape
+        assert np.all(close_float(Y.value, np.sum(npX, axis=0, keepdims=False)))
+        assert close_float(Z.value, np.sum(npX))
+
+def test_keepdims_grad_1():
+    npr.seed(10)
+
+    for ii in xrange(NUM_TRIALS):
+        npX = npr.randn(10,20)
+        X   = kayak.Parameter( npX )
+        Y   = kayak.MatSum(X, axis=0, keepdims=False)
+        Z   = kayak.MatSum(Y)
+
+        assert Z.grad(X).shape == npX.shape
+        assert np.all(close_float(Z.grad(X), np.ones(npX.shape)))
+        assert kayak.util.checkgrad(X, Z) < MAX_GRAD_DIFF
