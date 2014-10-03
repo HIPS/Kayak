@@ -46,7 +46,13 @@ class MatSum(Differentiable):
         return np.sum(self.A.value, axis=self.axis, keepdims=self.keepdims)
 
     def _local_grad(self, parent, d_out_d_self):
-        return d_out_d_self * np.ones(self.A.shape)
+        # If self.keepdims == False then we need to
+        # broadcast d_out_d_self along the summation axis
+        if not self.keepdims and self.axis is not None:
+            expanded_d_out_d_self = np.expand_dims(d_out_d_self, self.axis)
+            return expanded_d_out_d_self * np.ones(self.A.shape)
+        else:
+            return d_out_d_self * np.ones(self.A.shape)
 
 class MatAdd(Differentiable):
 

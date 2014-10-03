@@ -219,3 +219,19 @@ def test_keepdims_grad_1():
         assert Z.grad(X).shape == npX.shape
         assert np.all(close_float(Z.grad(X), np.ones(npX.shape)))
         assert kayak.util.checkgrad(X, Z) < MAX_GRAD_DIFF
+
+def test_keepdims_grad_2():
+    npr.seed(10)
+
+    for ii in xrange(NUM_TRIALS):
+        npW = npr.randn(5,10,20)
+        npX = npr.randn(5,10,20)
+        W   = kayak.Parameter( npW )
+        X   = kayak.Parameter( npX )
+        Y   = W * X
+        Z   = kayak.MatSum(Y, axis=2, keepdims=False)
+        S   = kayak.MatSum(Z)
+
+        assert S.grad(W).shape == npW.shape
+        # assert np.all(close_float(Z.grad(X), np.ones(npX.shape)))
+        assert kayak.util.checkgrad(X, S) < MAX_GRAD_DIFF
