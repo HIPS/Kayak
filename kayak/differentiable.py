@@ -73,6 +73,8 @@ class Differentiable(object):
         if out not in self._grad:
             if self is out:
                 grad = np.ones(self.shape)
+            elif not self._children:
+                grad = 0
             else:
                 grad = np.zeros(self.shape)
                 for child, parent_index in self._children:
@@ -83,7 +85,12 @@ class Differentiable(object):
         return self._grad[out]
 
     def _d_out_d_parent(self, out, parent):
-        return self._local_grad(parent, self._d_out_d_self(out))
+        d_out_d_self = self._d_out_d_self(out)
+        if d_out_d_self is 0:
+            # This avoid calling local_grad for paths that don't end in 'out'
+            return 0
+        else:
+            return self._local_grad(parent, d_out_d_self)
 
     def _add_child(self, child, parent_index):
         """Parent_index is an int that tells out child which parent we are."""
