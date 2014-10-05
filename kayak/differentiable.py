@@ -124,6 +124,9 @@ class Differentiable(object):
     def __sub__(self, other):
         return self + -other
 
+    def __rsub__(self, other):
+        return other + -self
+
     def __mul__(self, other):
         from . import ElemMult, Constant
         # If other is not a Differentiable object,
