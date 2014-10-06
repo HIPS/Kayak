@@ -167,24 +167,34 @@ class Reshape(Differentiable):
     def _local_grad(self, parent, d_out_d_self):
         return np.reshape(d_out_d_self, self.A.shape)
 
+
 class Concatenate(Differentiable):
 
-    def __init__(self, axis, A, B, *args):
-        # Recurse to handle lists of arguments.
-        if len(args) > 0:
-            B = Concatenate(axis, B, *args)
-        super(Concatenate, self).__init__([A, B])
-        self.A = A
-        self.B = B
+    def __init__(self, axis, *args):
+        super(Concatenate, self).__init__(args)
         self.axis = axis
 
     def _compute_value(self):
-        return np.concatenate((self.A.value,
-                               self.B.value), axis=self.axis)
+        return np.concatenate([p.value for p in self._parents], axis=self.axis)
 
-    def _local_grad(self, parent, d_out_d_self):
-        local_grad_both = np.split(d_out_d_self, [self.A.shape[self.axis]], axis=self.axis)
-        return local_grad_both[parent]
+    def _local_grad(self, parent_ix, d_out_d_self):
+        # Return the gradient only w.r.t. the matrix indexed by parent.
+        start_ix = sum([p.shape[self.axis] for p in self._parents[0:parent_ix]])
+        end_ix = start_ix + self._parents[parent_ix].shape[self.axis]
+        return index_along_axis(d_out_d_self, self.axis, start_ix, end_ix)
+
+
+def index_along_axis(array, axis, start, end):
+    """Return everything up to but not including end.
+
+    For example:
+    >>> index_along_axis(np.randn(10,20), 0, 10, 12).shape
+    (2, 20)
+    """
+    full_slice = [slice(None),] * array.ndim
+    full_slice[axis] = slice(start,end)
+    return array[full_slice]
+
 
 class TensorMult(Differentiable):
     pass
