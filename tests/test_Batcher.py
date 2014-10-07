@@ -69,5 +69,19 @@ def test_batcher_updates_value():
     assert np.all(X.value == data)
 
 def test_batcher_updates_dropout():
-    pass
+    batcher = kayak.Batcher(5, 10)
+    X = kayak.Inputs(np.random.randn(10,10))
+    Y = kayak.Dropout(X, batcher=batcher)
+    val1 = Y.value
+    batcher.next()
+    val2 = Y.value
+    assert not np.all(val1 == val2)
 
+def test_batcher_can_reinstate_dropout_mask():
+    batcher = kayak.Batcher(5, 10)
+    X = kayak.Inputs(np.ones((10,10)))
+    Y = kayak.Dropout(X, batcher=batcher)
+    assert not np.all(Y.value == np.ones((10, 10)))
+    batcher.test_mode()
+    print "Y value", Y.value
+    assert np.all(Y.value == np.ones((10, 10)))

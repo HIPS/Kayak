@@ -63,6 +63,7 @@ class Batcher(Differentiable):
         self._batch_size = batch_size
         self._total_size = total_size
         self._random_batches = random_batches
+        self._dropout_nodes = []
         self.reset()
 
     def reset(self):
@@ -89,6 +90,9 @@ class Batcher(Differentiable):
             self._value = self.ordering[self.start:self.end]
         else:
             self._value = slice(self.start, self.end)
+
+        for node in self._dropout_nodes:
+            node.draw_new_mask()
 
     def __iter__(self):
         return self
@@ -120,7 +124,13 @@ class Batcher(Differentiable):
         self.start += self._batch_size
         self.end    = min(self.start + self._batch_size, self._total_size)
 
+        for node in self._dropout_nodes:
+            node.draw_new_mask()
+
         return self._value
+
+    def add_dropout_node(self, node):
+        self._dropout_nodes.append(node)
 
     def test_mode(self):
         """
@@ -128,3 +138,5 @@ class Batcher(Differentiable):
         """
         self._clear_value_cache()
         self._value = slice(None, None) # All indices
+        for node in self._dropout_nodes:
+            node.reinstate_units()

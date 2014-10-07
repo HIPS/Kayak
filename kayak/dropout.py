@@ -10,8 +10,13 @@ from . import Differentiable, EPSILON
 
 class Dropout(Differentiable):
 
-    def __init__(self, X, drop_prob=0.5, rng=None):
-        super(Dropout, self).__init__([X])
+    def __init__(self, X, drop_prob=0.5, rng=None, batcher=None):
+        if batcher is not None:
+            super(Dropout, self).__init__([X, batcher])
+            batcher.add_dropout_node(self)
+        else:
+            super(Dropout, self).__init__([X])
+
         self.X         = X
         self.drop_prob = drop_prob
 

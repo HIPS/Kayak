@@ -23,7 +23,7 @@ def train(inputs, targets, batch_size, learn_rate, momentum, l1_weight, l2_weigh
     B    = kayak.Parameter( 0.1*npr.randn(1,10) )
 
     # Nothing fancy here: inputs times weights, plus bias, then softmax.
-    dropout_layer = kayak.Dropout(X, dropout)
+    dropout_layer = kayak.Dropout(X, dropout, batcher=batcher)
     Y    = kayak.LogSoftMax( kayak.ElemAdd( kayak.MatMult(dropout_layer, W), B ) )
 
     # The training loss is negative multinomial log likelihood.
@@ -43,7 +43,6 @@ def train(inputs, targets, batch_size, learn_rate, momentum, l1_weight, l2_weigh
 
         # Loop over batches -- using batcher as iterator.
         for batch in batcher:
-            dropout_layer.draw_new_mask()
             # Compute the loss of this minibatch by asking the Kayak
             # object for its value and giving it reset=True.
             total_loss += loss.value
@@ -79,7 +78,6 @@ def train(inputs, targets, batch_size, learn_rate, momentum, l1_weight, l2_weigh
     def compute_predictions(x):
         X.data = x
         batcher.test_mode()
-        dropout_layer.reinstate_units()
         return Y.value
 
     return compute_predictions
