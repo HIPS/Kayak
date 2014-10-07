@@ -10,14 +10,23 @@ class DataNode(Differentiable):
         else:
             super(DataNode, self).__init__([batcher])
 
-        self.data    = np.atleast_1d(data)
-        self.batcher = batcher
+        self._data    = np.atleast_1d(data)
+        self._batcher = batcher
+
+    @property
+    def data(self):
+        return self._data
+
+    @data.setter
+    def data(self, new_data):
+        self._data = new_data
+        self._clear_value_cache()
 
     def _compute_value(self):
-        if self.batcher is None:
+        if self._batcher is None:
             return self.data
         else:
-            return self.data[self.batcher.value,...]
+            return self.data[self._batcher.value,...]
 
     def _local_grad(self, parent, d_out_d_self):
         raise Exception("Can't take gradient w.r.t. data")

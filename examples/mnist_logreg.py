@@ -77,7 +77,8 @@ def train(inputs, targets, batch_size, learn_rate, momentum, l1_weight, l2_weigh
     # target values for novel data, using the parameters we just learned.
     
     def compute_predictions(x):
-        X.value = x
+        X.data = x
+        batcher.test_mode()
         dropout_layer.reinstate_units()
         return Y.value
 

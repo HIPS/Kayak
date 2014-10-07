@@ -126,7 +126,8 @@ def train(inputs, targets):
     # target values for novel data, using the parameters we just learned.
 
     def compute_predictions(x):
-        X.value = x
+        X.data = x
+        batcher.test_mode()
         [layer.reinstate_units() for layer in dropout_layers]
         return Y.value
 

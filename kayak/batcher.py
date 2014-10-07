@@ -117,3 +117,9 @@ class Batcher(Differentiable):
 
         return self._value
 
+    def test_mode(self):
+        """
+        Turns off batching. Run before test-time.
+        """
+        self._clear_value_cache()
+        self._value = slice(None, None) # All indices
