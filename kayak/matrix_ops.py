@@ -194,3 +194,13 @@ def index_along_axis(array, axis, start, end):
 class TensorMult(Differentiable):
     pass
        
+class Identity(Differentiable):
+    def __init__(self, A):
+        super(Identity, self).__init__([A])
+        self.A = A
+
+    def _compute_value(self):
+        return self.A.value
+
+    def _local_grad(self, parent_ix, d_out_d_self):
+        return d_out_d_self
