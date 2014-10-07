@@ -56,16 +56,11 @@ class MatSum(Differentiable):
 
 class MatAdd(Differentiable):
 
-    def __init__(self, A, B, *args):
-        # Recurse to handle lists of arguments.
-        if len(args) > 0:
-            B = MatAdd(B, *args)
-        super(MatAdd, self).__init__([A,B])
-        self.A = A
-        self.B = B
+    def __init__(self, *args):
+        super(MatAdd, self).__init__(args)
 
     def _compute_value(self):
-        return self.A.value + self.B.value
+        return sum([p.value for p in self._parents])
 
     def _local_grad(self, parent, d_out_d_self):
         parent_shape = self._parents[parent].shape

@@ -75,5 +75,23 @@ def test_matconcat_grad_3():
         assert D.grad(A).shape == (5,6)
         assert kayak.util.checkgrad(A, D) < MAX_GRAD_DIFF
 
+def test_matconcat_grad_4():
+    npr.seed(3)
 
+    for ii in xrange(NUM_TRIALS):
+        
+        np_A = npr.randn(5,6)
+        np_B = npr.randn(5,3)
+        np_C = npr.randn(5,7)
+        A    = kayak.Parameter(np_A)
+        B    = kayak.Parameter(np_B)
+        C    = kayak.Parameter(np_C)
+        D    = kayak.Concatenate(1, A, B, C)
+        E    = kayak.MatSum(D)
 
+        assert E.grad(A).shape == (5,6)
+        assert E.grad(B).shape == (5,3)
+        assert E.grad(C).shape == (5,7)
+        assert kayak.util.checkgrad(A, E) < MAX_GRAD_DIFF
+        assert kayak.util.checkgrad(B, E) < MAX_GRAD_DIFF
+        assert kayak.util.checkgrad(C, E) < MAX_GRAD_DIFF
