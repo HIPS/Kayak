@@ -9,10 +9,6 @@ class Loss(Differentiable):
     
     def __init__(self, predictions, targets):
         super(Loss, self).__init__([predictions, targets])
-
-        if predictions.shape != targets.shape:
-            raise Exception("Predictions and targets have different shapes: %s vs %s" % (predictions.shape, targets.shape))
-
         self.preds  = predictions
         self.targs  = targets
 
