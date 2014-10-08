@@ -30,14 +30,16 @@ kyk_W1 = kayak.Parameter( npr.randn(D, H1) )
 kyk_B1 = kayak.Parameter( npr.randn(1,H1) )
 
 # First layer weight mult plus biases, then nonlinearity.
-kyk_H1 = kayak.Dropout(kayak.HardReLU(kayak.ElemAdd(kayak.MatMult( kyk_inputs, kyk_W1 ), kyk_B1)), drop_prob=0.5)
+kyk_H1 = kayak.Dropout(kayak.HardReLU(kayak.ElemAdd(kayak.MatMult( kyk_inputs, kyk_W1 ), kyk_B1)),
+                       drop_prob=0.5, batcher=batcher)
 
 # Second layer weights and bias.
 kyk_W2 = kayak.Parameter( npr.randn(H1, P) )
 kyk_B2 = kayak.Parameter( npr.randn(1,P) )
 
 # Second layer multiplication.
-kyk_out = kayak.Dropout(kayak.HardReLU(kayak.ElemAdd(kayak.MatMult( kyk_H1, kyk_W2 ), kyk_B2)), drop_prob=0.5)
+kyk_out = kayak.Dropout(kayak.HardReLU(kayak.ElemAdd(kayak.MatMult( kyk_H1, kyk_W2 ), kyk_B2)),
+                        drop_prob=0.5, batcher=batcher)
 
 # Elementwise Loss.
 kyk_el_loss = kayak.L2Loss(kyk_out, kyk_targets)
@@ -58,13 +60,11 @@ t0 = time.time()
 for ii in xrange(10):
 
     for batch in batcher:
-        kyk_H1.draw_new_mask()
-        kyk_out.draw_new_mask()
         val = kyk_obj.value
         grad_W1 = kyk_obj.grad(kyk_W1)
         grad_B1 = kyk_obj.grad(kyk_B1)
         grad_W2 = kyk_obj.grad(kyk_W2)
         grad_B2 = kyk_obj.grad(kyk_B2)
 
-t1 = time.time()
+        t1 = time.time()
 print t1-t0

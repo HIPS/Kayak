@@ -52,3 +52,36 @@ def test_reset():
                 data_used[batch] = True
             
             assert np.all(data_used)
+
+def test_batcher_updates_value():
+    batcher = kayak.Batcher(12, 20)
+    data = npr.randn(20, 7)
+    X = kayak.Inputs(data, batcher)
+    for i, batch in enumerate(batcher):
+        if i == 0:
+            assert np.all(X.value == data[:12, :])
+        elif i == 1:
+            assert np.all(X.value == data[12:, :])
+        else:
+            assert False
+    
+    batcher.test_mode()
+    assert np.all(X.value == data)
+
+def test_batcher_updates_dropout():
+    batcher = kayak.Batcher(5, 10)
+    X = kayak.Inputs(np.random.randn(10,10))
+    Y = kayak.Dropout(X, batcher=batcher)
+    val1 = Y.value
+    batcher.next()
+    val2 = Y.value
+    assert not np.all(val1 == val2)
+
+def test_batcher_can_reinstate_dropout_mask():
+    batcher = kayak.Batcher(5, 10)
+    X = kayak.Inputs(np.ones((10,10)))
+    Y = kayak.Dropout(X, batcher=batcher)
+    assert not np.all(Y.value == np.ones((10, 10)))
+    batcher.test_mode()
+    print "Y value", Y.value
+    assert np.all(Y.value == np.ones((10, 10)))
