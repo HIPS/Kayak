@@ -1,15 +1,16 @@
 import numpy as np
 
 class Differentiable(object):
-
-    def __init__(self, parents=[]):
-        self._value = None
-        self._grad  = {}
+    __slots__ = ['_value', '_grad', '_loss', '_parents', '_children']
+    def __init__(self, parents=()):
+        self._value = None # Cached value
+        self._grad  = None # Cached grad
+        self._loss  = None # Loss we are caching with respect to
         for parent_index, parent in enumerate(parents):
             parent._add_child(self, parent_index)
 
-        self._parents = parents
-        self._children = []
+        self._parents = tuple(parents)
+        self._children = ()
 
     @property
     def value(self):
@@ -44,9 +45,9 @@ class Differentiable(object):
             self._value = None
 
     def _clear_grad_cache(self):
-        if self._grad:
+        if self._grad is not None:
             [parent._clear_grad_cache() for parent in self._parents]
-            self._grad = {}
+            self._grad = None
         
     def grad(self, other):
         """Compute the gradient of this module in terms of another
@@ -75,7 +76,9 @@ class Differentiable(object):
         return self.value.shape
 
     def _d_out_d_self(self, out):
-        if out not in self._grad:
+        # Cached grad is not valid or refers to a different loss,
+        # so we need to recompute compute the gradient
+        if self._grad is None or self._loss is not out:
             if self is out:
                 grad = np.ones(self.shape)
             elif not self._children:
@@ -83,9 +86,11 @@ class Differentiable(object):
             else:
                 grad = sum(child._d_out_d_parent(out, parent_index)
                            for child, parent_index in self._children)
-            self._grad[out] = grad
 
-        return self._grad[out]
+            self._loss = out
+            self._grad = grad
+
+        return self._grad
 
     def _d_out_d_parent(self, out, parent):
         d_out_d_self = self._d_out_d_self(out)
@@ -97,7 +102,7 @@ class Differentiable(object):
 
     def _add_child(self, child, parent_index):
         """Parent_index is an int that tells out child which parent we are."""
-        self._children.append((child, parent_index))
+        self._children = self._children + ((child, parent_index), )
 
     def _local_grad(self, parent, d_out_d_self):
         """Return d_out_d_self * d_self_d_parent"""

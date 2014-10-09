@@ -193,12 +193,13 @@ class TensorMult(Differentiable):
     pass
        
 class Identity(Differentiable):
+    __slots__ = []
+
     def __init__(self, A):
         super(Identity, self).__init__([A])
-        self.A = A
 
     def _compute_value(self):
-        return self.A.value
+        return self._parents[0].value
 
     def _local_grad(self, parent_ix, d_out_d_self):
         return d_out_d_self
