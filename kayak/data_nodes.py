@@ -3,7 +3,7 @@ import numpy as np
 from . import Differentiable
 
 class DataNode(Differentiable):
-
+    __slots__ = ['_batcher', '_data']
     def __init__(self, data, batcher=None):
         if batcher is None:
             super(DataNode, self).__init__([])
@@ -33,8 +33,10 @@ class DataNode(Differentiable):
 
 # TODO: Consider removing these
 class Inputs(DataNode):
+    __slots__ = []
     def __init__(self, data, batcher=None):
         super(Inputs, self).__init__(data, batcher)
 class Targets(DataNode):
+    __slots__ = []
     def __init__(self, data, batcher=None):
         super(Targets, self).__init__(data, batcher)

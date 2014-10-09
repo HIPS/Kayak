@@ -6,14 +6,14 @@ import numpy as np
 from . import Differentiable
 
 class Regularizer(Differentiable):
-
+    __slots__ = ['X', 'weight']
     def __init__(self, X, weight):
         super(Regularizer, self).__init__([X])
         self.X      = X
         self.weight = weight
 
 class L2Norm(Regularizer):
-
+    __slots__ = []
     def __init__(self, X, weight=1.0):
         super(L2Norm, self).__init__(X, weight)
 
@@ -24,7 +24,7 @@ class L2Norm(Regularizer):
         return self.weight * 2.0 * self.X.value * d_out_d_self
 
 class L1Norm(Regularizer):
-
+    __slots__ = []
     def __init__(self, X, weight=1.0):
         super(L1Norm, self).__init__(X, weight)
 
@@ -35,7 +35,7 @@ class L1Norm(Regularizer):
         return self.weight * np.sign(self.X.value) * d_out_d_self
 
 class Horseshoe(Regularizer):
-
+    __slots__ = []
     def __init__(self, X, weight=1.0):
         super(Horseshoe, self).__init__(X, weight)
 
@@ -47,7 +47,7 @@ class Horseshoe(Regularizer):
                  * (1.0/(1 + self.X.value**(-2))) * (-2*self.X.value**(-3)))
 
 class NExp(Regularizer):
-
+    __slots__ = []
     def __init__(self, X, weight=1.0):
         super(NExp, self).__init__(X, weight)
 

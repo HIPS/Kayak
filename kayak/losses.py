@@ -6,14 +6,14 @@ import numpy as np
 from . import Differentiable
 
 class Loss(Differentiable):
-    
+    __slots__ = ['preds', 'targs']
     def __init__(self, predictions, targets):
-        super(Loss, self).__init__([predictions, targets])
+        super(Loss, self).__init__((predictions, targets))
         self.preds  = predictions
         self.targs  = targets
 
 class L2Loss(Loss):
-
+    __slots__ = ['axis']
     def __init__(self, predictions, targets, axis=None):
         super(L2Loss, self).__init__(predictions, targets)
         self.axis = axis
@@ -26,7 +26,7 @@ class L2Loss(Loss):
         return 2 * (self.preds.value - self.targs.value) * d_out_d_self
 
 class LogMultinomialLoss(Loss):
-
+    __slots__ = ['axis']
     def __init__(self, predictions, targets, axis=1):
         # Predictions are log probabilities and targets are counts.
         super(LogMultinomialLoss, self).__init__(predictions, targets)

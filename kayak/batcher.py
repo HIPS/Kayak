@@ -35,7 +35,8 @@ class Batcher(Differentiable):
         # Do your mini-batch training here.
 
     """
-
+    __slots__ = ['_rng', '_batch_size', '_total_size', '_random_batches',
+                 '_dropout_nodes', 'start', 'end', 'ordering']
     def __init__(self, batch_size, total_size, random_batches=False, rng=None):
         """Constructor for the Kayak Batcher class.
 

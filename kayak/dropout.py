@@ -9,6 +9,7 @@ import numpy.random as npr
 from . import Differentiable, EPSILON
 
 class Dropout(Differentiable):
+    __slots__ = ['X', 'drop_prob', '_rng', '_enhancement', '_mask']
 
     def __init__(self, X, drop_prob=0.5, rng=None, batcher=None):
         if batcher is not None:

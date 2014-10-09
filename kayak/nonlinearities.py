@@ -8,13 +8,13 @@ import util
 from . import Differentiable
 
 class Nonlinearity(Differentiable):
-
+    __slots__ = ['X']
     def __init__(self, X):
-        super(Nonlinearity, self).__init__([X])
+        super(Nonlinearity, self).__init__((X,))
         self.X = X
 
 class SoftReLU(Nonlinearity):
-
+    __slots__ = ['scale']
     def __init__(self, X, scale=1.0):
         super(SoftReLU, self).__init__(X)
         self.scale  = scale
@@ -33,7 +33,7 @@ class SoftReLU(Nonlinearity):
         return d_out_d_self/(1.0 + np.exp( - self.X.value/self.scale ))
 
 class HardReLU(Nonlinearity):
-
+    __slots__ = []
     def __init__(self, X):
         super(HardReLU, self).__init__(X)
 
@@ -44,7 +44,7 @@ class HardReLU(Nonlinearity):
         return d_out_d_self * (self.X.value > 0)
 
 class TanH(Nonlinearity):
-
+    __slots__ = []
     def __init__(self, X):
         super(TanH, self).__init__(X)
 
@@ -67,7 +67,7 @@ class Logistic(Nonlinearity):
         return y*(1.0-y)
 
 class LogSoftMax(Nonlinearity):
-
+    __slots__ = ['axis']
     def __init__(self, X, axis=1):
         super(LogSoftMax, self).__init__(X)
         self.axis = axis
@@ -81,7 +81,7 @@ class LogSoftMax(Nonlinearity):
 
 
 class SoftMax(Nonlinearity):
-
+    __slots__ = ['axis']
     def __init__(self, X, axis=1):
         super(SoftMax, self).__init__(X)
         self.axis = axis
