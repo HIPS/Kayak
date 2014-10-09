@@ -11,17 +11,15 @@ class MatMult(Differentiable):
         # Recurse to handle lists of arguments.
         if len(args) > 0:
             B = MatMult(B, *args)
-
         super(MatMult, self).__init__([A, B])
-
-        if A.shape[1] != B.shape[0]:
-            raise Exception("Cannot multiply %s by %s matrices." % (A.shape, B.shape))
-        if len(A.shape) != 2 or len(B.shape) != 2:
-            raise Exception("Inputs of shape %s and %s are not matrices" % (A.shape, B.shape))
         self.A = A
         self.B = B
 
     def _compute_value(self):
+        if A.shape[1] != B.shape[0]:
+            raise Exception("Cannot multiply %s by %s matrices." % (A.shape, B.shape))
+        if len(A.shape) != 2 or len(B.shape) != 2:
+            raise Exception("Inputs of shape %s and %s are not matrices" % (A.shape, B.shape))
         return np.dot(self.A.value, self.B.value)
 
     def _local_grad(self, parent, d_out_d_self):
