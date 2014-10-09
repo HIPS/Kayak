@@ -64,7 +64,7 @@ class Logistic(Nonlinearity):
 
     def _local_grad(self, parent, d_out_d_self):
         y = 1.0/(1.0 + np.exp(-self.X.value))
-        return y*(1.0-y)
+        return d_out_d_self * y*(1.0-y)
 
 class LogSoftMax(Nonlinearity):
 
@@ -94,3 +94,29 @@ class SoftMax(Nonlinearity):
         oldgrad = d_out_d_self - (np.exp(self.value) * np.sum(d_out_d_self, axis=self.axis, keepdims=True))
         X = self.X.value
         return oldgrad * np.exp(np.exp(X - util.logsumexp(X, axis=self.axis)))
+
+class InputSoftMax(Nonlinearity):
+    
+    def __init__(self, X, ncolors=4):
+        super(InputSoftMax, self).__init__(X)
+        self.ncolors = ncolors
+        
+    def _compute_value(self):
+        X = self.X.value
+        A = np.reshape(X, (X.shape[0], X.shape[1]//self.ncolors, self.ncolors))
+        A_exp = np.exp(A)
+        A_sum = A_exp.sum(2).reshape((X.shape[0], X.shape[1]//self.ncolors, 1))
+        A_softmax = A_exp/A_sum
+        return A_softmax.reshape(X.shape)
+    
+    def _local_grad(self, parent, d_out_d_self):
+        X = self.X.value
+        A = np.reshape(X, (X.shape[0], X.shape[1]//self.ncolors, self.ncolors))
+        A_exp = np.exp(A)
+        A_sum = A_exp.sum(2).reshape((X.shape[0], X.shape[1]//self.ncolors, 1))
+        A_softmax = A_exp/A_sum
+        Deriv = np.multiply(A_softmax, 1-A_softmax)
+        Deriv = Deriv.reshape(X.shape)
+        #return np.dot(d_out_d_self, Deriv)
+        return Deriv*d_out_d_self
+
