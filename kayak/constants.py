@@ -6,7 +6,7 @@ import numpy as np
 from . import Differentiable
 
 class Constant(Differentiable):
-
+    __slots__ = []
     def __init__(self, val):
         super(Constant, self).__init__([])
         self.value = np.atleast_1d(val)

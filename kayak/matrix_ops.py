@@ -2,26 +2,23 @@
 # Copyright 2014, The President and Fellows of Harvard University
 
 import numpy as np
-
 from .        import Differentiable
 
 class MatMult(Differentiable):
-
+    __slots__ = ['A', 'B']
     def __init__(self, A, B, *args):
         # Recurse to handle lists of arguments.
         if len(args) > 0:
             B = MatMult(B, *args)
-
-        super(MatMult, self).__init__([A, B])
-
-        if A.shape[1] != B.shape[0]:
-            raise Exception("Cannot multiply %s by %s matrices." % (A.shape, B.shape))
-        if len(A.shape) != 2 or len(B.shape) != 2:
-            raise Exception("Inputs of shape %s and %s are not matrices" % (A.shape, B.shape))
+        super(MatMult, self).__init__((A, B))
         self.A = A
         self.B = B
 
     def _compute_value(self):
+        if self.A.shape[1] != self.B.shape[0]:
+            raise Exception("Cannot multiply %s by %s matrices." % (self.A.shape, self.B.shape))
+        if len(self.A.shape) != 2 or len(self.B.shape) != 2:
+            raise Exception("Inputs of shape %s and %s are not matrices" % (self.A.shape, self.B.shape))
         return np.dot(self.A.value, self.B.value)
 
     def _local_grad(self, parent, d_out_d_self):
@@ -33,9 +30,9 @@ class MatMult(Differentiable):
             raise Exception("Not a parent of me")
 
 class MatSum(Differentiable):
-     
+    __slots__ = ['A', 'axis', 'keepdims']
     def __init__(self, A, axis=None, keepdims=True):
-        super(MatSum, self).__init__([A])
+        super(MatSum, self).__init__((A,))
         if axis is not None and type(axis) != int:
             raise Exception("Can only sum over one axis at a time.")
         self.A    = A
@@ -55,7 +52,7 @@ class MatSum(Differentiable):
             return d_out_d_self * np.ones(self.A.shape)
 
 class MatAdd(Differentiable):
-
+    __slots__ = []
     def __init__(self, *args):
         super(MatAdd, self).__init__(args)
 
@@ -75,21 +72,18 @@ class MatAdd(Differentiable):
         original_singletons = tuple(np.where(np.array(parent_shape) == 1)[0])
         return np.sum(result, axis=original_singletons, keepdims=True)
 
-
 class MatElemMult(Differentiable):
     """
     Elementwise multiplication of two arrays of the same size.
     Note: This does not support broadcasting yet. Look at MatAdd for ideas.
     """
+    __slots__ = ['A', 'B']
     def __init__(self, A, B, *args):
         # Recurse to handle lists of arguments.
         if len(args) > 0:
             B = MatElemMult(B, *args)
 
-        super(MatElemMult, self).__init__([A,B])
-
-        # if A.shape != B.shape:
-        #     raise Exception("Matrices are not the same shape: %s vs %s" % (A.shape, B.shape))
+        super(MatElemMult, self).__init__((A,B))
 
         self.A = A
         self.B = B
@@ -123,7 +117,6 @@ class MatElemMult(Differentiable):
         original_singletons = tuple(np.where(np.array(parent_shape) == 1)[0])
         return np.sum(result, axis=original_singletons, keepdims=True)
 
-
 class MatDet(Differentiable):
     pass
 
@@ -134,9 +127,9 @@ class MatTrace(Differentiable):
     pass
 
 class Transpose(Differentiable):
-
+    __slots__ = ['A', 'axes']
     def __init__(self, A, axes=None):
-        super(Transpose, self).__init__([A])
+        super(Transpose, self).__init__((A,))
         self.A    = A
         self.axes = axes
 
@@ -150,9 +143,10 @@ class Transpose(Differentiable):
             return np.transpose(d_out_d_self, axes=np.argsort(self.axes))
 
 class Reshape(Differentiable):
+    __slots__ = ['A', 'new_shape']
 
     def __init__(self, A, new_shape):
-        super(Reshape, self).__init__([A])
+        super(Reshape, self).__init__((A,))
         self.A         = A
         self.new_shape = new_shape
 
@@ -162,9 +156,8 @@ class Reshape(Differentiable):
     def _local_grad(self, parent, d_out_d_self):
         return np.reshape(d_out_d_self, self.A.shape)
 
-
 class Concatenate(Differentiable):
-
+    __slots__ = ['axis']
     def __init__(self, axis, *args):
         super(Concatenate, self).__init__(args)
         self.axis = axis
@@ -178,7 +171,6 @@ class Concatenate(Differentiable):
         end_ix = start_ix + self._parents[parent_ix].shape[self.axis]
         return index_along_axis(d_out_d_self, self.axis, start_ix, end_ix)
 
-
 def index_along_axis(array, axis, start, end):
     """Return everything up to but not including end.
 
@@ -190,17 +182,16 @@ def index_along_axis(array, axis, start, end):
     full_slice[axis] = slice(start,end)
     return array[full_slice]
 
-
 class TensorMult(Differentiable):
     pass
        
 class Identity(Differentiable):
+    __slots__ = []
     def __init__(self, A):
-        super(Identity, self).__init__([A])
-        self.A = A
+        super(Identity, self).__init__((A,))
 
     def _compute_value(self):
-        return self.A.value
+        return self._parents[0].value
 
     def _local_grad(self, parent_ix, d_out_d_self):
         return d_out_d_self
