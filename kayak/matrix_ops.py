@@ -16,10 +16,10 @@ class MatMult(Differentiable):
         self.B = B
 
     def _compute_value(self):
-        if A.shape[1] != B.shape[0]:
-            raise Exception("Cannot multiply %s by %s matrices." % (A.shape, B.shape))
-        if len(A.shape) != 2 or len(B.shape) != 2:
-            raise Exception("Inputs of shape %s and %s are not matrices" % (A.shape, B.shape))
+        if self.A.shape[1] != self.B.shape[0]:
+            raise Exception("Cannot multiply %s by %s matrices." % (self.A.shape, self.B.shape))
+        if len(self.A.shape) != 2 or len(self.B.shape) != 2:
+            raise Exception("Inputs of shape %s and %s are not matrices" % (self.A.shape, self.B.shape))
         return np.dot(self.A.value, self.B.value)
 
     def _local_grad(self, parent, d_out_d_self):
