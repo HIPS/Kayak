@@ -55,7 +55,7 @@ class TanH(Nonlinearity):
         return d_out_d_self*(1.0 - np.tanh(self.X.value)**2)
 
 class Logistic(Nonlinearity):
-
+    __slots__ = []
     def __init__(self, X):
         super(Logistic, self).__init__(X)
 
@@ -96,7 +96,7 @@ class SoftMax(Nonlinearity):
         return oldgrad * np.exp(np.exp(X - util.logsumexp(X, axis=self.axis)))
 
 class InputSoftMax(Nonlinearity):
-    
+    __slots__ = ['ncolors']
     def __init__(self, X, ncolors=4):
         super(InputSoftMax, self).__init__(X)
         self.ncolors = ncolors
