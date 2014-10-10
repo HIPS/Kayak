@@ -79,7 +79,6 @@ class LogSoftMax(Nonlinearity):
     def _local_grad(self, parent, d_out_d_self):
         return d_out_d_self - (np.exp(self.value) * np.sum(d_out_d_self, axis=self.axis, keepdims=True))
 
-
 class SoftMax(Nonlinearity):
     __slots__ = ['axis']
     def __init__(self, X, axis=1):
@@ -91,9 +90,8 @@ class SoftMax(Nonlinearity):
         return np.exp(X - util.logsumexp(X, axis=self.axis))
 
     def _local_grad(self, parent, d_out_d_self):
-        oldgrad = d_out_d_self - (np.exp(self.value) * np.sum(d_out_d_self, axis=self.axis, keepdims=True))
-        X = self.X.value
-        return oldgrad * np.exp(np.exp(X - util.logsumexp(X, axis=self.axis)))
+        val = self.value
+        return val * (d_out_d_self - np.sum(val * d_out_d_self, axis=self.axis, keepdims=True))
 
 class InputSoftMax(Nonlinearity):
     __slots__ = ['ncolors']
