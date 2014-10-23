@@ -99,22 +99,15 @@ class InputSoftMax(Nonlinearity):
         super(InputSoftMax, self).__init__(X)
         self.ncolors = ncolors
         
-    def _compute_value(self):
+    def _compute_value(self):        
         X = self.X.value
-        A = np.reshape(X, (X.shape[0], X.shape[1]//self.ncolors, self.ncolors))
-        A_exp = np.exp(A)
-        A_sum = A_exp.sum(2).reshape((X.shape[0], X.shape[1]//self.ncolors, 1))
-        A_softmax = A_exp/A_sum
-        return A_softmax.reshape(X.shape)
+        A = np.reshape(X, (X.shape[0], self.ncolors, X.shape[1]//self.ncolors))
+        X = A
+        return np.exp(X - util.logsumexp(X, axis=1)).reshape((self.X.shape))
     
     def _local_grad(self, parent, d_out_d_self):
         X = self.X.value
-        A = np.reshape(X, (X.shape[0], X.shape[1]//self.ncolors, self.ncolors))
-        A_exp = np.exp(A)
-        A_sum = A_exp.sum(2).reshape((X.shape[0], X.shape[1]//self.ncolors, 1))
-        A_softmax = A_exp/A_sum
-        Deriv = np.multiply(A_softmax, 1-A_softmax)
-        Deriv = Deriv.reshape(X.shape)
-        #return np.dot(d_out_d_self, Deriv)
-        return Deriv*d_out_d_self
-
+        A = np.reshape(X, (X.shape[0], self.ncolors, X.shape[1]//self.ncolors))
+        val = self.value.reshape(A.shape)
+        d_out_d_self = d_out_d_self.reshape(val.shape)
+        return (val * (d_out_d_self - np.sum(val * d_out_d_self, axis=1, keepdims=True))).reshape((self.X.shape[0],-1))
