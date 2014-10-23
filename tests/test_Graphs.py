@@ -137,3 +137,40 @@ def test_cache_utility():
     out = kayak.MatSum(Z)
     assert kayak.util.checkgrad(W1, out) < 1e-4
 
+def test_irrelevant_outputs():
+    # Having an irrelevant output shouldn't cause problems. Indeed, its
+    # gradient and value should not be called.
+    class NoValue(kayak.Differentiable):
+        def __init__(self, A, *args):
+            # Recurse to handle lists of arguments.
+            super(NoValue, self).__init__([A])
+        def _compute_value(self):
+            raise AttributeError("Value should not be called")
+        def _local_grad(self, parent, d_out_d_self):
+            raise AttributeError("Grad should not be called")
+
+    X = kayak.Inputs(npr.randn(10, 20))
+    Y = kayak.Inputs(npr.randn(10, 20))
+    Z = X + Y
+    bad_output = NoValue(X)
+    Z.grad(X) # Will raise AttributeError is W's value or grad is called
+
+def test_irrelevant_outputs_2():
+    # As above, with a chain of ouptuts
+    class NoValue(kayak.Differentiable):
+        def __init__(self, A, *args):
+            # Recurse to handle lists of arguments.
+            super(NoValue, self).__init__([A])
+        def _compute_value(self):
+            raise AttributeError("Value should not be called")
+        def _local_grad(self, parent, d_out_d_self):
+            raise AttributeError("Grad should not be called")
+
+    X = kayak.Inputs(npr.randn(10, 20))
+    Y = kayak.Inputs(npr.randn(10, 20))
+    Z = X + Y
+    bad_pre_output = NoValue(X)
+    bad_output = NoValue(bad_pre_output)
+
+    Z.grad(X) # Will raise AttributeError is W's value or grad is called
+

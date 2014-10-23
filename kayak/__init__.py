@@ -11,9 +11,9 @@ from differentiable import Differentiable
 from constants      import Constant, Parameter
 from batcher        import Batcher
 from data_nodes     import DataNode, Inputs, Targets
-from matrix_ops     import MatAdd, MatMult, MatSum, Transpose, Reshape, Concatenate
-from elem_ops       import ElemAdd, ElemMult, ElemExp, ElemLog
-from nonlinearities import SoftReLU, HardReLU, LogSoftMax, TanH
+from matrix_ops     import MatAdd, MatMult, MatElemMult, MatSum, Transpose, Reshape, Concatenate, Identity
+from elem_ops       import ElemAdd, ElemMult, ElemExp, ElemLog, ElemPower, ElemAbs
+from nonlinearities import SoftReLU, HardReLU, LogSoftMax, TanH, Logistic, InputSoftMax, SoftMax
 from losses         import L2Loss, LogMultinomialLoss
 from dropout        import Dropout
 from regularizers   import L2Norm, L1Norm, Horseshoe, NExp

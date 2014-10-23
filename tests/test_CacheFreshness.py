@@ -35,6 +35,13 @@ def test_dropout_clears_value_cache():
     assert not np.all(val1 == val2)
     assert np.all(Z.value == Z.value)
 
+def test_data_update_clears_value_cache():
+    X = kayak.Inputs(np.array([[1, 2, 3], [2, 3, 4], [3, 4, 5]]))
+    assert np.all(X.value == [[1, 2, 3], [2, 3, 4], [3, 4, 5]])
+    X.data = [1,2]
+    assert X._value is None
+    assert np.all(X.value == [1, 2])
+
 def test_param_change_clears_value_cache():
     pass
 

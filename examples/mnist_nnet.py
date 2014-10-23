@@ -36,8 +36,6 @@ CV = kayak.CrossValidator(10, train_images, train_labels)
 
 # Here I define a nice little training function that takes inputs and targets.
 def train(inputs, targets):
-    dropout_layers = []
-
     # Create a batcher object.
     batcher = kayak.Batcher(batch_size, inputs.shape[0])
 
@@ -50,16 +48,16 @@ def train(inputs, targets):
     B1 = kayak.Parameter( 0.1*npr.randn(1, layer1_sz) )
 
     # First hidden layer: ReLU + Dropout
-    H1 = kayak.Dropout(kayak.HardReLU(kayak.ElemAdd(kayak.MatMult(X, W1), B1)), layer1_dropout)
-    dropout_layers.append(H1)
+    H1 = kayak.Dropout(kayak.HardReLU(kayak.ElemAdd(kayak.MatMult(X, W1), B1)),
+                       layer1_dropout, batcher=batcher)
 
     # Second-layer weights and biases, with random initializations.
     W2 = kayak.Parameter( 0.1*npr.randn( layer1_sz, layer2_sz ))
     B2 = kayak.Parameter( 0.1*npr.randn(1, layer2_sz) )
 
     # Second hidden layer: ReLU + Dropout
-    H2 = kayak.Dropout(kayak.HardReLU(kayak.ElemAdd(kayak.MatMult(H1, W2), B2)), layer2_dropout)
-    dropout_layers.append(H2)
+    H2 = kayak.Dropout(kayak.HardReLU(kayak.ElemAdd(kayak.MatMult(H1, W2), B2)),
+                       layer2_dropout, batcher=batcher)
 
     # Output layer weights and biases, with random initializations.
     W3 = kayak.Parameter( 0.1*npr.randn( layer2_sz, 10 ))
@@ -84,8 +82,6 @@ def train(inputs, targets):
 
         # Loop over batches -- using batcher as iterator.
         for batch in batcher:
-            [layer.draw_new_mask() for layer in dropout_layers]
-        
             # Compute the loss of this minibatch by asking the Kayak
             # object for its value and giving it reset=True.
             total_loss += loss.value
@@ -126,8 +122,8 @@ def train(inputs, targets):
     # target values for novel data, using the parameters we just learned.
 
     def compute_predictions(x):
-        X.value = x
-        [layer.reinstate_units() for layer in dropout_layers]
+        X.data = x
+        batcher.test_mode()
         return Y.value
 
     return compute_predictions

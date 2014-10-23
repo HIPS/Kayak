@@ -35,7 +35,8 @@ class Batcher(Differentiable):
         # Do your mini-batch training here.
 
     """
-
+    __slots__ = ['_rng', '_batch_size', '_total_size', '_random_batches',
+                 '_dropout_nodes', 'start', 'end', 'ordering']
     def __init__(self, batch_size, total_size, random_batches=False, rng=None):
         """Constructor for the Kayak Batcher class.
 
@@ -50,7 +51,7 @@ class Batcher(Differentiable):
 
           total_size: (Integer) Total number of data to iterate over.
 
-          random_batches: (Bool) Specifies whether the mini-batches
+          _random_batches: (Bool) Specifies whether the mini-batches
                           should be random or not.
         """
         super(Batcher, self).__init__([])
@@ -60,9 +61,10 @@ class Batcher(Differentiable):
         else:
             self._rng = rng
 
-        self.batch_size = batch_size
-        self.total_size = total_size
-        self.random_batches = random_batches
+        self._batch_size = batch_size
+        self._total_size = total_size
+        self._random_batches = random_batches
+        self._dropout_nodes = []
         self.reset()
 
     def reset(self):
@@ -81,13 +83,17 @@ class Batcher(Differentiable):
         Arguments: None
 
         """
-        if self.random_batches:
-            self.ordering = self._rng.permutation(self.total_size)
-        else:
-            self.ordering = np.arange(self.total_size, dtype=int)
         self.start    = 0
-        self.end      = min(self.start+self.batch_size, self.total_size)
-        self._value = self.ordering[self.start:self.end]
+        self.end      = min(self.start+self._batch_size, self._total_size)
+
+        if self._random_batches:
+            self.ordering = self._rng.permutation(self._total_size)
+            self._value = self.ordering[self.start:self.end]
+        else:
+            self._value = slice(self.start, self.end)
+
+        for node in self._dropout_nodes:
+            node.draw_new_mask()
 
     def __iter__(self):
         return self
@@ -105,15 +111,33 @@ class Batcher(Differentiable):
         Arguments: None
 
         """
-        if self.start >= self.total_size:
+        if self.start >= self._total_size:
             self.reset()
             raise StopIteration
 
         self._clear_value_cache()
 
-        self._value = self.ordering[self.start:self.end]
-        self.start += self.batch_size
-        self.end    = min(self.start + self.batch_size, self.total_size)
+        if self._random_batches:
+            self._value = self.ordering[self.start:self.end]
+        else:
+            self._value = slice(self.start, self.end)
+
+        self.start += self._batch_size
+        self.end    = min(self.start + self._batch_size, self._total_size)
+
+        for node in self._dropout_nodes:
+            node.draw_new_mask()
 
         return self._value
 
+    def add_dropout_node(self, node):
+        self._dropout_nodes.append(node)
+
+    def test_mode(self):
+        """
+        Turns off batching. Run before test-time.
+        """
+        self._clear_value_cache()
+        self._value = slice(None, None) # All indices
+        for node in self._dropout_nodes:
+            node.reinstate_units()
