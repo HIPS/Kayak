@@ -56,7 +56,8 @@ looks like this:
     biases_2  = kayak.Parameter(npr.randn(1, hidsize_2))
 
     # This time, let's compose all the steps, just to show we can.
-    hiddens_2 = kayak.Dropout( kayak.HardReLU( kayak.ElemAdd( kayak.MatMult( hiddens_1, weights_2), biases_2)), drop_prob=0.5)
+    hiddens_2 = kayak.Dropout( kayak.HardReLU( kayak.ElemAdd( \
+                    kayak.MatMult( hiddens_1, weights_2), biases_2)), drop_prob=0.5)
     
     # Make the output layer linear.
     weights_out = kayak.Parameter(npr.randn(hidsize_2, 1))
