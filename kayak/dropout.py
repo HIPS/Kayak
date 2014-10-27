@@ -1,7 +1,9 @@
-# Author: Ryan P. Adams <rpa@seas.harvard.edu>
+# Authors: Harvard Intelligent Probabilistic Systems (HIPS) Group
+#          http://hips.seas.harvard.edu
+#          Ryan Adams, David Duvenaud, Scott Linderman,
+#          Dougal Maclaurin, Jasper Snoek, and others
 # Copyright 2014, The President and Fellows of Harvard University
-
-#import math as m
+# Distributed under an MIT license. See license.txt file.
 
 import numpy        as np
 import numpy.random as npr
