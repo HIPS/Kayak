@@ -17,28 +17,31 @@ class Loss(Differentiable):
         self.targs  = targets
 
 class L2Loss(Loss):
-    __slots__ = ['axis']
-    def __init__(self, predictions, targets, axis=None):
+    __slots__ = ['axis', 'keepdims']
+    def __init__(self, predictions, targets, axis=None, keepdims=True):
         super(L2Loss, self).__init__(predictions, targets)
         self.axis = axis
+        self.keepdims = keepdims
 
     def _compute_value(self):
         return np.sum((self.preds.value - self.targs.value)**2,
-                      axis=self.axis, keepdims=True)
+                      axis=self.axis, keepdims=self.keepdims)
 
     def _local_grad(self, parent, d_out_d_self):
+        assert parent is 0, "Shouldn't be taking derivative wrt targets"
         return 2 * (self.preds.value - self.targs.value) * d_out_d_self
 
 class LogMultinomialLoss(Loss):
-    __slots__ = ['axis']
-    def __init__(self, predictions, targets, axis=1):
+    __slots__ = ['axis', 'keepdims']
+    def __init__(self, predictions, targets, axis=1, keepdims=True):
         # Predictions are log probabilities and targets are counts.
         super(LogMultinomialLoss, self).__init__(predictions, targets)
         self.axis = axis
+        self.keepdims = keepdims
 
     def _compute_value(self):
         return -np.sum(self.targs.value * self.preds.value,
-                       axis=self.axis, keepdims=True)
+                       axis=self.axis, keepdims=self.keepdims)
 
     def _local_grad(self, parent, d_out_d_self):
         return - d_out_d_self * self.targs.value

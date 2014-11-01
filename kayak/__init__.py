@@ -15,7 +15,7 @@ from differentiable import Differentiable
 from constants      import Constant, Parameter
 from batcher        import Batcher
 from data_nodes     import DataNode, Inputs, Targets
-from matrix_ops     import MatAdd, MatMult, MatElemMult, MatSum, Transpose, Reshape, Concatenate, Identity
+from matrix_ops     import MatAdd, MatMult, MatElemMult, MatSum, Transpose, Reshape, Concatenate, Identity, TensorMult
 from elem_ops       import ElemAdd, ElemMult, ElemExp, ElemLog, ElemPower, ElemAbs
 from nonlinearities import SoftReLU, HardReLU, LogSoftMax, TanH, Logistic, InputSoftMax, SoftMax
 from losses         import L2Loss, LogMultinomialLoss
@@ -25,5 +25,5 @@ from crossval       import CrossValidator
 from convolution    import Convolve1d
 from indexing       import Take
 from stacking       import Hstack
-
+from generic_ops    import Blank
 

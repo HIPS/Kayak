@@ -187,8 +187,35 @@ def index_along_axis(array, axis, start, end):
     return array[full_slice]
 
 class TensorMult(Differentiable):
-    pass
-       
+    __slots__ = ['axes']
+    def __init__(self, A, B, axes):
+        super(TensorMult, self).__init__((A, B))
+        self.axes = axes
+
+    def _compute_value(self):
+        A = self._parents[0].value
+        B = self._parents[1].value
+        return np.tensordot(A, B, self.axes)
+
+    def _local_grad(self, parent, d_out_d_self):
+        diff = lambda A, B : [a for a in A if a not in B]
+        rank = lambda L : list(np.argsort(np.argsort(L)))
+        val = [p.value for p in self._parents]
+        axes = self.axes
+        n_axes = len(axes[0])
+        ignore_dims = [diff(range(val[i].ndim), axes[i]) for i in (0, 1)]
+        ignore_ndims = [len(x) for x in ignore_dims]
+        output_dims = (range(ignore_ndims[0]),
+                       range(ignore_ndims[0], ignore_ndims[0] + ignore_ndims[1]))
+        X, Y = parent, 1 - parent
+        wrong_order = np.tensordot(val[Y], d_out_d_self, (ignore_dims[Y], output_dims[Y]))
+        permutation = [None] * val[X].ndim
+        for final, cur in zip(list(axes[X]) + ignore_dims[X],
+                              rank(axes[Y]) + range(n_axes, val[X].ndim)):
+            permutation[final] = cur
+
+        return np.transpose(wrong_order, permutation)
+
 class Identity(Differentiable):
     __slots__ = []
     def __init__(self, A):

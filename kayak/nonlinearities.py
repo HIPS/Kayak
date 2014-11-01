@@ -6,6 +6,7 @@
 # Distributed under an MIT license. See license.txt file.
 
 import numpy as np
+from numpy import exp
 
 import util
 
@@ -67,8 +68,8 @@ class Logistic(Nonlinearity):
         return 1.0/(1.0 + np.exp(-self.X.value))
 
     def _local_grad(self, parent, d_out_d_self):
-        y = 1.0/(1.0 + np.exp(-self.X.value))
-        return d_out_d_self * y*(1.0-y)
+        y = self.value
+        return d_out_d_self * y * (1.0 - y)
 
 class LogSoftMax(Nonlinearity):
     __slots__ = ['axis']
