@@ -28,3 +28,16 @@ def test_indexing_grad():
 
         Z.value
         assert_less(kayak.util.checkgrad(X, Z), MAX_GRAD_DIFF)
+
+def test_indexing_grad_2():
+    npr.seed(3)
+
+    for ii in xrange(NUM_TRIALS):
+        np_X = npr.randn(6, 2, 7, 3)
+        inds = npr.permutation(7)[:5]
+        X    = kayak.Parameter(np_X)
+        Y    = kayak.Take(X, inds,axis=2)
+        Z    = kayak.MatSum(Y)
+
+        Z.value
+        assert_less(kayak.util.checkgrad(X, Z), MAX_GRAD_DIFF)

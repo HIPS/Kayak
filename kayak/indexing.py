@@ -21,15 +21,13 @@ class Take(Differentiable):
         self._axis     = axis
 
     def _compute_value(self):
-        return np.take(self.X.value, self._inds, axis=self._axis)
+        slice_list = [slice(None), ] * self.X.value.ndim
+        slice_list[self._axis] = self._inds
+        return self.X.value[slice_list]
 
     def _local_grad(self, parent, d_out_d_self):
         result = np.zeros(self.X.shape)
-        if self._axis == 0: # Need a better way to slice by axis
-            result[self._inds,:] = d_out_d_self
-        elif self._axis == 1:
-            result[:,self._inds] = d_out_d_self
-        else:
-            raise("Only up to two dimensional arrays supported.")
-
+        slice_list = [slice(None), ] * result.ndim
+        slice_list[self._axis] = self._inds
+        result[slice_list] = d_out_d_self
         return result
