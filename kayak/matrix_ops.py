@@ -175,6 +175,19 @@ class Concatenate(Differentiable):
         end_ix = start_ix + self._parents[parent_ix].shape[self.axis]
         return index_along_axis(d_out_d_self, self.axis, start_ix, end_ix)
 
+class ListToArray(Differentiable):
+    """Build an array out of a list of arrays by prepending a dimensions
+    and concatenating."""
+    __slots__ = []
+    def __init__(self, *args):
+        super(ListToArray, self).__init__(args)
+
+    def _compute_value(self):
+        return np.concatenate([p.value[None, :] for p in self._parents], axis=0)
+
+    def _local_grad(self, parent_ix, d_out_d_self):
+        return d_out_d_self[parent_ix, :]
+
 def index_along_axis(array, axis, start, end):
     """Return everything up to but not including end.
 
