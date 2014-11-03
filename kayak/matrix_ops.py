@@ -19,20 +19,28 @@ class MatMult(Differentiable):
         self.A = A
         self.B = B
 
-    _check_inputs = check_equal_ndims_for_broadcasting
-
     def _compute_value(self):
-        if self.A.shape[1] != self.B.shape[0]:
+        A_val, B_val = self.A.value, self.B.value
+        if A_val.ndim > 2 or B_val.ndim > 2:
+            raise Exception("Inputs of shape %s and %s are not matrices or vectors" % (self.A.shape))
+        if A_val.shape[-1] != B_val.shape[0]:
             raise Exception("Cannot multiply %s by %s matrices." % (self.A.shape, self.B.shape))
-        if len(self.A.shape) != 2 or len(self.B.shape) != 2:
-            raise Exception("Inputs of shape %s and %s are not matrices" % (self.A.shape, self.B.shape))
+
         return np.dot(self.A.value, self.B.value)
 
     def _local_grad(self, parent, d_out_d_self):
         if parent == 0:
-            return np.dot(d_out_d_self, self.B.value.T)
+            B_val = self.B.value
+            if B_val.ndim == 2:
+                return np.dot(d_out_d_self, B_val.T)
+            else:
+                return np.outer(d_out_d_self, B_val)
         elif parent == 1:
-            return np.dot(self.A.value.T, d_out_d_self)
+            A_val = self.A.value
+            if A_val.ndim ==2:
+                return np.dot(A_val.T, d_out_d_self)
+            else:
+                return np.outer(A_val, d_out_d_self)
         else:
             raise Exception("Not a parent of me")
 
