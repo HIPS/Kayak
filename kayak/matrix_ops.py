@@ -6,6 +6,7 @@
 # Distributed under an MIT license. See license.txt file.
 
 import numpy as np
+import scipy.linalg as spla
 from .        import Differentiable
 
 class MatMult(Differentiable):
@@ -145,7 +146,17 @@ class MatElemMult(Differentiable):
         return np.sum(result, axis=original_singletons, keepdims=True)
 
 class MatDet(Differentiable):
-    pass
+    __slots__ = ['A']
+    def __init__(self, A, axis=None, keepdims=True):
+        super(MatDet, self).__init__((A,))
+        self.A    = A
+
+    def _compute_value(self):
+        return np.linalg.det(self.A.value)
+
+    def _local_grad(self, parent, d_out_d_self):
+        det = self._compute_value()
+        return d_out_d_self * det * np.linalg.inv(self.A.value).T
 
 class MatLogDet(Differentiable):
     pass
