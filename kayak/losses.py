@@ -7,6 +7,7 @@
 
 import numpy as np
 
+from input_checking import check_equal_ndims_for_broadcasting
 from . import Differentiable
 
 class Loss(Differentiable):
@@ -15,6 +16,8 @@ class Loss(Differentiable):
         super(Loss, self).__init__((predictions, targets))
         self.preds  = predictions
         self.targs  = targets
+
+    _check_inputs = check_equal_ndims_for_broadcasting
 
 class L2Loss(Loss):
     __slots__ = ['axis', 'keepdims']

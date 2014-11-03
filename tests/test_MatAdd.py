@@ -5,33 +5,35 @@ import kayak
 
 from . import *
 
-def test_0d_plus_2d_scalar_value():
-    npr.seed(1)
+# These behaviors requires prepending singeltons. Do we want to keep them?
+# def test_0d_plus_2d_scalar_value():
+#     npr.seed(1)
 
-    for ii in xrange(NUM_TRIALS):
-        npX1 = npr.randn(1, 1)
-        X1 = kayak.Parameter( npX1 )
-        npX2 = np.sum(npr.randn()) # generates a scalar with shape ()
-        X2= kayak.Parameter( npX2 )
-        Y = kayak.MatAdd(X1, X2)
+#     for ii in xrange(NUM_TRIALS):
+#         npX1 = npr.randn(1, 1)
+#         X1 = kayak.Parameter( npX1 )
+#         npX2 = np.sum(npr.randn()) # generates a scalar with shape ()
+#         X2= kayak.Parameter( npX2 )
+#         Y = kayak.MatAdd(X1, X2)
 
-        # Verify that a scalar is reproduced.
-        assert close_float(Y.value, npX1 + npX2)
+#         # Verify that a scalar is reproduced.
+#         assert close_float(Y.value, npX1 + npX2)
 
-def test_0d_plus_2d_scalar_grad():
-    npr.seed(2)
-    for ii in xrange(NUM_TRIALS):
-        npX1 = npr.randn(1, 1)
-        X1 = kayak.Parameter( npX1 )
-        npX2 = np.sum(npr.randn()) # generates a scalar with shape ()
-        X2= kayak.Parameter( npX2 )
-        Y = kayak.MatAdd(X1, X2)
 
-        # Verify that the gradient is one.
-        assert Y.grad(X1) == 1.0
-        assert Y.grad(X2) == 1.0
-        assert kayak.util.checkgrad(X1, Y) < MAX_GRAD_DIFF
-        assert kayak.util.checkgrad(X2, Y) < MAX_GRAD_DIFF
+# def test_0d_plus_2d_scalar_grad():
+#     npr.seed(2)
+#     for ii in xrange(NUM_TRIALS):
+#         npX1 = npr.randn(1, 1)
+#         X1 = kayak.Parameter( npX1 )
+#         npX2 = np.sum(npr.randn()) # generates a scalar with shape ()
+#         X2= kayak.Parameter( npX2 )
+#         Y = kayak.MatAdd(X1, X2)
+
+#         # Verify that the gradient is one.
+#         assert Y.grad(X1) == 1.0
+#         assert Y.grad(X2) == 1.0
+#         assert kayak.util.checkgrad(X1, Y) < MAX_GRAD_DIFF
+#         assert kayak.util.checkgrad(X2, Y) < MAX_GRAD_DIFF
 
 def test_matadd_values_1():
     npr.seed(1)

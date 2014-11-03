@@ -6,7 +6,8 @@
 # Distributed under an MIT license. See license.txt file.
 
 import numpy as np
-from .        import Differentiable
+from input_checking import check_equal_ndims_for_broadcasting
+from . import Differentiable
 
 class MatMult(Differentiable):
     __slots__ = ['A', 'B']
@@ -17,6 +18,8 @@ class MatMult(Differentiable):
         super(MatMult, self).__init__((A, B))
         self.A = A
         self.B = B
+
+    _check_inputs = check_equal_ndims_for_broadcasting
 
     def _compute_value(self):
         if self.A.shape[1] != self.B.shape[0]:
@@ -83,6 +86,8 @@ class MatAdd(Differentiable):
     def __init__(self, *args):
         super(MatAdd, self).__init__(args)
 
+    _check_inputs = check_equal_ndims_for_broadcasting
+
     def _compute_value(self):
         return sum([p.value for p in self._parents])
 
@@ -114,6 +119,8 @@ class MatElemMult(Differentiable):
 
         self.A = A
         self.B = B
+
+    _check_inputs = check_equal_ndims_for_broadcasting
 
     def _compute_value(self):
         return self.A.value * self.B.value
