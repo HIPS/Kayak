@@ -6,7 +6,6 @@
 # Distributed under an MIT license. See license.txt file.
 
 import numpy as np
-import scipy.linalg as spla
 from .        import Differentiable
 
 class MatMult(Differentiable):
