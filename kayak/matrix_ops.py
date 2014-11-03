@@ -55,6 +55,29 @@ class MatSum(Differentiable):
         else:
             return d_out_d_self * np.ones(self.A.shape)
 
+class MatMean(Differentiable):
+    __slots__ = ['A', 'axis', 'keepdims']
+    def __init__(self, A, axis=None, keepdims=True):
+        super(MatMean, self).__init__((A,))
+        if axis is not None and type(axis) != int:
+            raise Exception("Can only take the mean over one axis at a time.")
+        self.A    = A
+        self.axis = axis
+        self.keepdims = keepdims
+
+    def _compute_value(self):
+        return np.mean(self.A.value, axis=self.axis, keepdims=self.keepdims)
+
+    def _local_grad(self, parent, d_out_d_self):
+        # If self.keepdims == False then we need to
+        # broadcast d_out_d_self along the summation axis
+        N = float(self.A.value.size) if self.axis is None else float(self.A.shape[self.axis])
+        if not self.keepdims and self.axis is not None:
+            expanded_d_out_d_self = np.expand_dims(d_out_d_self, self.axis)
+            return expanded_d_out_d_self * 1.0/N * np.ones(self.A.shape)
+        else:
+            return d_out_d_self * 1.0/N * np.ones(self.A.shape)
+
 class MatAdd(Differentiable):
     __slots__ = []
     def __init__(self, *args):
