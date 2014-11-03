@@ -6,7 +6,6 @@
 # Distributed under an MIT license. See license.txt file.
 
 import numpy as np
-
 from . import Differentiable
 
 class DataNode(Differentiable):
@@ -38,12 +37,22 @@ class DataNode(Differentiable):
     def _local_grad(self, parent, d_out_d_self):
         raise Exception("Can't take gradient w.r.t. data")
 
-# TODO: Consider removing these
-class Inputs(DataNode):
+class Parameter(Differentiable):
     __slots__ = []
-    def __init__(self, data, batcher=None):
-        super(Inputs, self).__init__(data, batcher)
-class Targets(DataNode):
-    __slots__ = []
-    def __init__(self, data, batcher=None):
-        super(Targets, self).__init__(data, batcher)
+    def __init__(self, val):
+        super(Parameter, self).__init__([])
+        self.value = np.atleast_1d(val)
+
+    def grad(self, other):
+        return np.zeros(other.shape)
+
+    def _compute_value(self):
+        raise Exception("Shouldn't need this. Value should be cached")
+
+    def _local_grad(self, parent, d_out_d_self):
+        raise Exception("Shouldn't get here.")
+
+# These are just aliases
+Inputs = DataNode
+Targets = DataNode
+Constant = Parameter
