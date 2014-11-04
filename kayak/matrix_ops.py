@@ -9,7 +9,7 @@ import numpy as np
 from .        import Differentiable
 
 class MatMult(Differentiable):
-    __slots__ = ['A', 'B']
+    __slots__ = ['A', 'B', 'scratch', 'scratch_A', 'scratch_B']
     def __init__(self, A, B, *args):
         # Recurse to handle lists of arguments.
         if len(args) > 0:
@@ -18,18 +18,47 @@ class MatMult(Differentiable):
         self.A = A
         self.B = B
 
+        # Preallocated memory block
+        self.scratch = np.empty((self.A.shape[0], self.B.shape[1]), dtype=self.A.value.dtype)
+        self.scratch_A = None
+        self.scratch_B = None
+
     def _compute_value(self):
         if self.A.shape[1] != self.B.shape[0]:
             raise Exception("Cannot multiply %s by %s matrices." % (self.A.shape, self.B.shape))
         if len(self.A.shape) != 2 or len(self.B.shape) != 2:
             raise Exception("Inputs of shape %s and %s are not matrices" % (self.A.shape, self.B.shape))
-        return np.dot(self.A.value, self.B.value)
+
+        if self.scratch.shape != (self.A.shape[0], self.B.shape[1]):
+            self.scratch = np.zeros((self.A.shape[0], self.B.shape[1]))
+        self.scratch.flags.writeable = True
+
+        np.dot(self.A.value, self.B.value, out=self.scratch)
+        
+        # Prevent users from possibly overwriting memory in the next layer
+        self.scratch.flags.writeable = False 
+
+        return self.scratch
 
     def _local_grad(self, parent, d_out_d_self):
         if parent == 0:
-            return np.dot(d_out_d_self, self.B.value.T)
+            if self.scratch_A is None or self.scratch_A.shape != self.A.shape:
+                self.scratch_A = np.empty_like(self.A.value)
+
+            self.scratch_A.flags.writeable = True
+            np.dot(d_out_d_self, self.B.value.T, out=self.scratch_A)
+            self.scratch_A.flags.writeable = False
+            return self.scratch_A
+
         elif parent == 1:
-            return np.dot(self.A.value.T, d_out_d_self)
+            if self.scratch_B is None or self.scratch_B.shape != self.B.shape:
+                self.scratch_B = np.empty(self.B.shape)
+
+            self.scratch_B.flags.writeable = True
+            result = np.dot(self.A.value.T, d_out_d_self, out=self.scratch_B)
+            self.scratch_B.flags.writeable = False
+            return self.scratch_B
+
         else:
             raise Exception("Not a parent of me")
 
