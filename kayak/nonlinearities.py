@@ -11,6 +11,7 @@ from numpy import exp
 import util
 
 from . import Differentiable
+from kayak import EPSILON
 
 class Nonlinearity(Differentiable):
     __slots__ = ['X']
@@ -116,3 +117,21 @@ class InputSoftMax(Nonlinearity):
         val = self.value.reshape(A.shape)
         d_out_d_self = d_out_d_self.reshape(val.shape)
         return (val * (d_out_d_self - np.sum(val * d_out_d_self, axis=1, keepdims=True))).reshape((self.X.shape[0],-1))
+
+class L2Normalize(Nonlinearity):
+    __slots__ = ['axis']
+    def __init__(self, X, axis=1):
+        super(L2Normalize, self).__init__(X)
+        self.axis = axis
+        assert np.all(X.value >= 0)
+
+    def _compute_value(self):
+        X = self.X.value
+        lX = np.log(X + EPSILON)
+        return np.exp(lX - 0.5*util.logsumexp(2*lX, axis=self.axis))
+
+    def _local_grad(self, parent, d_out_d_self):
+        X = self.X.value + EPSILON
+        val = self.value
+        val2 = X / np.sum(X**2, axis=self.axis, keepdims=True)
+        return val * (d_out_d_self / X - np.sum(val2 * d_out_d_self, axis=self.axis, keepdims=True))        

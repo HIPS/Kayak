@@ -64,6 +64,38 @@ def test_convolve1d_grad_1():
         assert_less(kayak.util.checkgrad(A, D), MAX_GRAD_DIFF)
         assert_less(kayak.util.checkgrad(B, D), MAX_GRAD_DIFF)
 
+def test_pool_1():
+    npr.seed(3)
+
+    for ii in xrange(NUM_TRIALS):
+        
+        np_A = npr.randn(5,6)
+        A    = kayak.Parameter(np_A)
+        B    = kayak.Pool(A, width=2)
+        C    = kayak.MatSum(B)
+
+        C.value
+        assert_equals(C.grad(A).shape, (5,6))
+        assert_equals(C.grad(B).shape, (5,3))
+        assert_less(kayak.util.checkgrad(A, C), MAX_GRAD_DIFF)
+
+def test_pool_2():
+    npr.seed(3)
+
+    for ii in xrange(NUM_TRIALS):
+        
+        np_A = npr.randn(5, 6*4)
+        A    = kayak.Parameter(np_A)
+        B    = kayak.Pool(A, width=2, ncolors=4)
+        C    = kayak.MatSum(B)
+
+        C.value
+        assert_equals(C.grad(A).shape, (5, 6*4))
+        assert_equals(C.grad(B).shape, (5, 12))
+        assert_equals(B.shape, (5, 12))
+        assert_less(kayak.util.checkgrad(A, C), MAX_GRAD_DIFF)
+
+
 def test_convolve1d_grad_2():
     npr.seed(3)
 

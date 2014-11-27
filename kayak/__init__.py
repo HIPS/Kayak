@@ -22,7 +22,7 @@ from losses         import L2Loss, LogMultinomialLoss
 from dropout        import Dropout
 from regularizers   import L2Norm, L1Norm, Horseshoe, NExp
 from crossval       import CrossValidator
-from convolution    import Convolve1d
+from convolution    import Convolve1d, Pool, TopKPool
 from indexing       import Take
 from stacking       import Hstack
 from generic_ops    import Blank
