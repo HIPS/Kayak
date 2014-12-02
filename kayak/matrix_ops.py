@@ -36,28 +36,16 @@ class MatMult(Differentiable):
         np.dot(self.A.value, self.B.value, out=self.scratch)
         
         # Prevent users from possibly overwriting memory in the next layer
-        self.scratch.flags.writeable = False 
+        self.scratch.flags.writeable = False
 
         return self.scratch
 
     def _local_grad(self, parent, d_out_d_self):
         if parent == 0:
-            if self.scratch_A is None or self.scratch_A.shape != self.A.shape:
-                self.scratch_A = np.empty_like(self.A.value)
-
-            self.scratch_A.flags.writeable = True
-            np.dot(d_out_d_self, self.B.value.T, out=self.scratch_A)
-            self.scratch_A.flags.writeable = False
-            return self.scratch_A
+            return np.dot(d_out_d_self, self.B.value.T)
 
         elif parent == 1:
-            if self.scratch_B is None or self.scratch_B.shape != self.B.shape:
-                self.scratch_B = np.empty(self.B.shape)
-
-            self.scratch_B.flags.writeable = True
-            result = np.dot(self.A.value.T, d_out_d_self, out=self.scratch_B)
-            self.scratch_B.flags.writeable = False
-            return self.scratch_B
+            return np.dot(self.A.value.T, d_out_d_self)
 
         else:
             raise Exception("Not a parent of me")

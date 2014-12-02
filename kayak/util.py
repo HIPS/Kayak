@@ -14,8 +14,8 @@ from . import EPSILON
 from constants import Parameter
 
 def checkgrad(variable, output, epsilon=1e-4, verbose=False):
-    if not isinstance(variable, Parameter):
-        raise Exception("Cannot evaluate gradient in terms of non-Parameter type %s", (type(variable)))
+    # if not isinstance(variable, Parameter):
+    #     raise Exception("Cannot evaluate gradient in terms of non-Parameter type %s", (type(variable)))
 
     # Need to make sure all evals have the same random number generation.
     rng_seed = 1

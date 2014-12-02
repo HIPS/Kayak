@@ -13,12 +13,14 @@ from . import Differentiable
 import sys
 
 class Convolve1d(Differentiable):
-
+    __slots__ = ['A', 'B', 'ncolors']#, 'output']
     def __init__(self, A, B, ncolors=1):
         super(Convolve1d, self).__init__([A,B])
         self.A    = A
         self.B    = B
         self.ncolors = ncolors
+
+        #self.output = None
 
     def _compute_value(self):
         A = self.A.value
@@ -26,23 +28,31 @@ class Convolve1d(Differentiable):
         filtersize = B.shape[0]/self.ncolors
 
         # Broadcast to get color channels
-        A = np.reshape(A, (A.shape[0], self.ncolors, -1))
+        A = A.reshape((A.shape[0], self.ncolors, -1))
         D = A.shape[-1] - filtersize + 1
-        output = np.zeros((A.shape[0], D, B.shape[1]))
+        # if self.output is None or (self.output.size != self.A.shape[0]*D*B.shape[1]):
+        output = np.zeros((A.shape[0], D, B.shape[1]), dtype=A.dtype)
+        # else:
+        #     self.output.flags.writeable = True
+        #     self.output = self.output.reshape((A.shape[0], D, B.shape[1]))
 
-        offset = 0
+        offset  = 0
         for j in xrange(D):
-            output[:,j,:] = np.dot(A[:, :,offset:offset+filtersize].reshape((A.shape[0],-1)), B)
+            output[:,j,:] = np.dot(A.take(np.arange(offset,offset+filtersize), axis=2).reshape((A.shape[0],-1)), B)
             offset += 1
 
-        return output.reshape((A.shape[0], D*B.shape[1]))
+        A = A.reshape((A.shape[0], -1))
+        output = output.reshape((A.shape[0], D*B.shape[1]))
+        # self.output.flags.writeable = False
+
+        return output
 
     def _local_grad(self, parent, d_out_d_self):
         filtersize = self.B.shape[0]/self.ncolors
         if parent == 0:
             output     = np.zeros((self.A.shape[0], self.A.shape[1]))
             B          = self.B.value
-            output = output.reshape((output.shape[0], self.ncolors, -1))
+            output = output.reshape((output.shape[0], self.ncolors, -1))        
             outgrad = d_out_d_self.reshape(d_out_d_self.shape[0], -1, B.shape[-1])
             for i in xrange(outgrad.shape[1]):
                 output[:,:,i:i+filtersize] += np.dot(outgrad[:,i,:], B.T).reshape((output.shape[0], self.ncolors, filtersize)) 

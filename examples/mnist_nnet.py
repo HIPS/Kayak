@@ -8,6 +8,21 @@ sys.path.append('..')
 
 import kayak
 
+def gram_schmidt(V):
+    U = V.copy()
+    for i in xrange(1,V.shape[1]):
+        for j in xrange(i):
+            U[:,i] -= U[:,j] * np.dot(V[:,i], U[:,j]) / np.dot(U[:,j], U[:,j])
+    d = (U**2).sum(axis=0) ** 0.5
+    E = U/d
+    return E
+
+def _init_weights(insize, outsize):
+    w = insize**-0.5 * npr.randn(insize, outsize)
+    w = npr.randn(insize, outsize)
+    w = gram_schmidt(w.T).T
+    return w
+
 batch_size     = 256
 learn_rate     = 0.01
 momentum       = 0.9
