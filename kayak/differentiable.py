@@ -92,8 +92,12 @@ class Differentiable(object):
             elif not self._children:
                 grad = 0
             else:
-                grad = sum(child._d_out_d_parent(out, parent_index)
-                           for child, parent_index in self._children)
+                grad = None
+                for child, parent_index in self._children:                    
+                    if grad is None:
+                        grad = child._d_out_d_parent(out, parent_index)
+                    else:
+                        grad += child._d_out_d_parent(out, parent_index)
 
             self._loss = out
             self._grad = grad
