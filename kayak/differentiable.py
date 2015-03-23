@@ -19,6 +19,10 @@ class Differentiable(object):
         self._parents = tuple(parents)
         self._children = ()
 
+    def __del__(self):
+        for c in self._children:
+            del c
+
     @property
     def value(self):
         """Compute the value of the function.  This walks up the
@@ -87,12 +91,17 @@ class Differentiable(object):
         # so we need to recompute compute the gradient
         if self._grad is None or self._loss is not out:
             if self is out:
-                grad = np.ones(self.shape)
+                grad = 1.0
+
             elif not self._children:
                 grad = 0
             else:
-                grad = sum(child._d_out_d_parent(out, parent_index)
-                           for child, parent_index in self._children)
+                grad = None
+                for child, parent_index in self._children:
+                    if grad is None:
+                        grad = child._d_out_d_parent(out, parent_index)
+                    else:
+                        grad += child._d_out_d_parent(out, parent_index)
 
             self._loss = out
             self._grad = grad
@@ -108,7 +117,7 @@ class Differentiable(object):
             return self._local_grad(parent, d_out_d_self)
 
     def _add_child(self, child, parent_index):
-        """Parent_index is an int that tells out child which parent we are."""
+        """Parent_index is an int that tells our child which parent we are."""
         self._children = self._children + ((child, parent_index), )
 
     def _local_grad(self, parent, d_out_d_self):
