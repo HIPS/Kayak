@@ -91,7 +91,7 @@ class Differentiable(object):
         # so we need to recompute compute the gradient
         if self._grad is None or self._loss is not out:
             if self is out:
-                grad = 1.0
+                grad = np.ones(self.shape)
 
             elif not self._children:
                 grad = 0
