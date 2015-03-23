@@ -95,6 +95,20 @@ def test_pool_2():
         assert_equals(B.shape, (5, 12))
         assert_less(kayak.util.checkgrad(A, C), MAX_GRAD_DIFF)
 
+def test_topkpool_1():
+    npr.seed(3)
+
+    for ii in xrange(NUM_TRIALS):
+        
+        np_A = npr.randn(5,9)
+        A    = kayak.Parameter(np_A)
+        B    = kayak.TopKPool(A, k=5)
+        C    = kayak.MatSum(B)
+
+        C.value
+        assert_equals(C.grad(A).shape, (5,9))
+        assert_equals(C.grad(B).shape, (5,5))
+        assert_less(kayak.util.checkgrad(A, C), MAX_GRAD_DIFF)
 
 def test_convolve1d_grad_2():
     npr.seed(3)
