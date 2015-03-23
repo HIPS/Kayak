@@ -78,7 +78,7 @@ class Pool(Differentiable):
         try:
             A = np.reshape(A, (A.shape[0], self.ncolors, -1, self.width))
         except:
-            print A.shape
+            print 'Could not pool with a width of %d on a layer of size %d' % (self.width, A.shape[0]/self.ncolors)
             print (A.shape[0], self.ncolors, -1, self.width)
             raise
         self.indices = np.argmax(A, axis=3)
@@ -124,25 +124,3 @@ class TopKPool(Differentiable):
             return mask
         else:
             raise Exception("Not a parent of me")
-# class MaxPool(Differentiable):
-#     __slots__ = ['X', 'width']
-
-#     def __init__(self, X, width, axis=1):
-#         super(Take, self).__init__([X])
-
-#         self.X         = X
-#         self._inds     = inds
-#         self._axis     = axis
-
-#     def _compute_value(self):
-#         slice_list = [slice(None), ] * self.X.value.ndim
-#         slice_list[self._axis] = self._inds
-#         return self.X.value[slice_list]
-
-#     def _local_grad(self, parent, d_out_d_self):
-#         result = np.zeros(self.X.shape)
-#         slice_list = [slice(None), ] * result.ndim
-#         slice_list[self._axis] = self._inds
-#         result[slice_list] = d_out_d_self
-#         return result
-
