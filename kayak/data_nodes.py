@@ -10,7 +10,7 @@ import numpy as np
 from . import Differentiable
 
 class DataNode(Differentiable):
-    __slots__ = ['_batcher', '_data']
+    __slots__ = ['_batcher', '_data','_children', '_value', '_grad', '_loss', '_parents']
     def __init__(self, data, batcher=None):
         if batcher is None:
             super(DataNode, self).__init__([])
