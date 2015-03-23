@@ -6,9 +6,10 @@
 # Distributed under an MIT license. See license.txt file.
 
 import numpy as np
+import weakref
 
 class Differentiable(object):
-    __slots__ = ['_value', '_grad', '_loss', '_parents', '_children']
+    __slots__ = ['_value', '_grad', '_loss', '_parents', '_children','__weakref__','_parent_indices']
     def __init__(self, parents=()):
         self._value = None # Cached value
         self._grad  = None # Cached grad
@@ -17,11 +18,12 @@ class Differentiable(object):
             parent._add_child(self, parent_index)
 
         self._parents = tuple(parents)
-        self._children = ()
+        self._children = weakref.WeakValueDictionary()
+        # self._children = ()
 
-    def __del__(self):
-        for c in self._children:
-            del c
+    @property
+    def _children_with_parent_indices(self):
+        return [(self._children[key], key[1]) for key in self._children.keys()]
 
     @property
     def value(self):
@@ -35,7 +37,6 @@ class Differentiable(object):
         """
         # If the value is not yet cached, compute it.
         if self._value is None:
-            self._check_inputs()
             self._value = self._compute_value()
 
         return self._value
@@ -52,7 +53,8 @@ class Differentiable(object):
         to their parents' values.
         """
         if self._value is not None:
-            [child._clear_value_cache() for child, _ in self._children]
+            [child._clear_value_cache() for child in self._children.values()]
+            # [child._clear_value_cache() for child, _ in self._children.values()]
             self._clear_grad_cache()
             self._value = None
 
@@ -93,12 +95,11 @@ class Differentiable(object):
         if self._grad is None or self._loss is not out:
             if self is out:
                 grad = np.ones(self.shape)
-
             elif not self._children:
                 grad = 0
             else:
                 grad = None
-                for child, parent_index in self._children:
+                for child, parent_index in self._children_with_parent_indices:
                     if grad is None:
                         grad = child._d_out_d_parent(out, parent_index)
                     else:
@@ -117,13 +118,10 @@ class Differentiable(object):
         else:
             return self._local_grad(parent, d_out_d_self)
 
-    def _check_inputs(self):
-        # Override in subclass if you want to check inputs at compute value time
-        pass
-
     def _add_child(self, child, parent_index):
-        """Parent_index is an int that tells our child which parent we are."""
-        self._children = self._children + ((child, parent_index), )
+        """Parent_index is an int that tells out child which parent we are."""
+        self._children[(id(child), parent_index)] = child
+        # self._children = self._children + ((child, parent_index), )
 
     def _local_grad(self, parent, d_out_d_self):
         """Return d_out_d_self * d_self_d_parent"""
