@@ -11,7 +11,7 @@ import itertools    as it
 
 from . import EPSILON
 
-from constants import Parameter
+from root_nodes import Parameter
 
 def checkgrad(variable, output, epsilon=1e-4, verbose=False):
     if not isinstance(variable, Parameter):

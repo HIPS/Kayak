@@ -35,6 +35,7 @@ class Differentiable(object):
         """
         # If the value is not yet cached, compute it.
         if self._value is None:
+            self._check_inputs()
             self._value = self._compute_value()
 
         return self._value
@@ -115,6 +116,10 @@ class Differentiable(object):
             return 0
         else:
             return self._local_grad(parent, d_out_d_self)
+
+    def _check_inputs(self):
+        # Override in subclass if you want to check inputs at compute value time
+        pass
 
     def _add_child(self, child, parent_index):
         """Parent_index is an int that tells our child which parent we are."""

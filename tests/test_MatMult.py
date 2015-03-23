@@ -100,3 +100,40 @@ def test_matmult_grad_3():
         assert kayak.util.checkgrad(B, E) < MAX_GRAD_DIFF
         assert kayak.util.checkgrad(C, E) < MAX_GRAD_DIFF
 
+def test_matmult_grad_mat_vect():
+    npr.seed(5)
+
+    for ii in xrange(NUM_TRIALS):
+        
+        np_A = npr.randn(5,6)
+        np_B = npr.randn(6)
+        np_C = npr.randn(5,)
+        A    = kayak.Parameter(np_A)
+        B    = kayak.Parameter(np_B)
+        C    = kayak.Parameter(np_C)
+        D    = kayak.MatMult(A, B)
+        E    = kayak.MatSum(kayak.ElemMult(C, D))
+
+        assert E.grad(A).shape == (5,6)
+        assert E.grad(B).shape == (6,)
+        assert kayak.util.checkgrad(A, E) < MAX_GRAD_DIFF
+        assert kayak.util.checkgrad(B, E) < MAX_GRAD_DIFF
+
+def test_matmult_grad_vect_mat():
+    npr.seed(5)
+
+    for ii in xrange(NUM_TRIALS):
+        
+        np_A = npr.randn(6,)
+        np_B = npr.randn(6,7)
+        np_C = npr.randn(7,)
+        A    = kayak.Parameter(np_A)
+        B    = kayak.Parameter(np_B)
+        C    = kayak.Parameter(np_C)
+        D    = kayak.MatMult(A, B)
+        E    = kayak.MatSum(kayak.ElemMult(C, D))
+
+        assert E.grad(A).shape == (6,)
+        assert E.grad(B).shape == (6, 7)
+        assert kayak.util.checkgrad(A, E) < MAX_GRAD_DIFF
+        assert kayak.util.checkgrad(B, E) < MAX_GRAD_DIFF
