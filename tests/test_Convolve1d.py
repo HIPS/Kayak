@@ -95,6 +95,37 @@ def test_pool_2():
         assert_equals(B.shape, (5, 12))
         assert_less(kayak.util.checkgrad(A, C), MAX_GRAD_DIFF)
 
+def test_pool_offwidth_1():
+    npr.seed(3)
+
+    for ii in xrange(NUM_TRIALS):
+        
+        np_A = npr.randn(5,7)
+        A    = kayak.Parameter(np_A)
+        B    = kayak.Pool(A, width=3)
+        C    = kayak.MatSum(B)
+
+        C.value
+        assert_equals(C.grad(A).shape, (5,7))
+        assert_equals(C.grad(B).shape, (5,3))
+        assert_less(kayak.util.checkgrad(A, C), MAX_GRAD_DIFF)
+
+def test_pool_offwidth_2():
+    npr.seed(3)
+
+    for ii in xrange(NUM_TRIALS):
+        
+        np_A = npr.randn(5, 7*4)
+        A    = kayak.Parameter(np_A)
+        B    = kayak.Pool(A, width=3, ncolors=4)
+        C    = kayak.MatSum(B)
+
+        C.value
+        assert_equals(C.grad(A).shape, (5, 7*4))
+        assert_equals(C.grad(B).shape, (5, 12))
+        assert_equals(B.shape, (5, 12))
+        assert_less(kayak.util.checkgrad(A, C), MAX_GRAD_DIFF)
+
 def test_topkpool_1():
     npr.seed(3)
 

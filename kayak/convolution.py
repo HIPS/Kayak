@@ -75,25 +75,83 @@ class Pool(Differentiable):
 
     def _compute_value(self):
         A = self.A.value
+
+        # determine pooled shape variables
+        conv_length = A.shape[1]/self.ncolors
+        width_mod = conv_length % self.width
+        width_aug = self.width - width_mod
+
+        # augment convolution output to make pool width work
+        if width_mod > 0:
+            # insert at the back end of each convolution
+            idx = np.ravel([[i*conv_length]*width_aug for i in range(1,self.ncolors+1)])
+            
+            # insert -inf
+            A = np.insert(A, idx, -np.inf, axis=1)
+
+        # bring together elements in a pooling group
+        A = np.reshape(A, (A.shape[0], self.ncolors, -1, self.width))
+
+        # get the index of the max within each pooling group
+        self.indices = np.argmax(A, axis=3)
+
+        # represent the first 3 dimensions of A
+        x, z, t = np.indices(self.indices.shape)
+
+        # index into the 4th dimension to pull out the maxes
+        A = A[x, z, t, self.indices]
+
+        # reshape back to the original form with the last dimension pooled
+        A = A.reshape((self.A.shape[0],-1))
+        
+        return A
+
+        '''
         try:
             A = np.reshape(A, (A.shape[0], self.ncolors, -1, self.width))
         except:
             print 'Could not pool with a width of %d on a layer of size %d' % (self.width, A.shape[0]/self.ncolors)
+            print A.shape
             print (A.shape[0], self.ncolors, -1, self.width)
             raise
-        self.indices = np.argmax(A, axis=3)
-        x, z, t = np.indices(self.indices.shape)
-        A = A[x, z, t, self.indices]
-        A = A.reshape((self.A.shape[0],-1))
-        return A
+        '''
 
     def _local_grad(self, parent, d_out_d_self):
         if parent == 0:
+            # determine pooled shape variables
+            conv_length = self.A.shape[1]/self.ncolors
+            width_mod = conv_length % self.width
+            width_aug = self.width - width_mod
+            pool_length = conv_length/self.width + 1*(width_mod>0)
+
+            # create a zero matrix to match the reshaped version of A
+            #  that brings together elements in a pool group
+            mask = np.zeros((self.A.shape[0], self.ncolors, pool_length, self.width))
+
+            # represent the first 3 dimensions of mask
+            inds, inds2, inds3 = np.indices(self.indices.shape)
+
+            # set the max indexes in mask to d_out_d_self,
+            #  reshaped to fit the shape of this reduced version of the full matrix A
+            mask[inds, inds2, inds3, self.indices] = d_out_d_self.reshape((mask[inds, inds2, inds3, self.indices].shape))
+
+            # reshape to original form, with the last dimension pooled
+            mask = mask.reshape((self.A.shape[0], -1))
+            
+            # remove the added dummy columns
+            if width_mod > 0:
+                conv_length_aug = conv_length + width_aug
+                idx = [i*conv_length_aug-m for i in range(1,self.ncolors+1) for m in range(1,width_aug+1)]
+                mask = np.delete(mask, idx, axis=1)
+
+            return mask
+
+            '''
             mask = np.zeros(self.A.shape).reshape((self.A.shape[0], self.ncolors, -1, self.width))
             inds, inds2, inds3 = np.indices(self.indices.shape)
             mask[inds, inds2, inds3, self.indices] = d_out_d_self.reshape((mask[inds, inds2, inds3, self.indices].shape))
             mask = mask.reshape((self.A.shape[0], -1))
-            return mask
+            '''
         else:
             raise Exception("Not a parent of me")
 
