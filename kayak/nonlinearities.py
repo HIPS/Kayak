@@ -134,4 +134,30 @@ class L2Normalize(Nonlinearity):
         X = self.X.value + EPSILON
         val = self.value
         val2 = X / np.sum(X**2, axis=self.axis, keepdims=True)
-        return val * (d_out_d_self / X - np.sum(val2 * d_out_d_self, axis=self.axis, keepdims=True))        
+        return val * (d_out_d_self / X - np.sum(val2 * d_out_d_self, axis=self.axis, keepdims=True))
+
+class BatchNormalize(Nonlinearity):
+    __slots__ = ['X']
+    def __init__(self, X):
+        super(BatchNormalize, self).__init__(X)
+
+    def _compute_value(self):
+        X   = self.X.value
+        mu  = np.mean(self.X.value, axis=0, keepdims=True)
+        sig = np.mean((X - mu)**2, axis=0, keepdims=True) + 1e-6
+        val = (X - mu) * sig**-0.5
+        return val
+
+    def _local_grad(self, parent, d_out_d_self):
+        X          = self.X.value
+        mu         = np.mean(self.X.value, axis=0, keepdims=True)
+        diff       = X - mu
+        sig        = np.mean(diff**2, axis=0, keepdims=True) + 1e-6
+        invsqrtsig = sig**-0.5
+        val        = diff * invsqrtsig
+        m          = X.shape[0]
+
+        dsig = np.sum(d_out_d_self*diff*(-0.5*sig**-(3./2.)), axis=0, keepdims=True)
+        dmu  = np.sum(d_out_d_self * -invsqrtsig, axis=0, keepdims=True) + dsig*np.mean(-2.0*diff, axis=0, keepdims=True)
+        dx   = d_out_d_self * invsqrtsig + dsig * 2.0 * diff/m + dmu/m
+        return dx
