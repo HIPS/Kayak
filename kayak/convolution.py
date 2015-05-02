@@ -13,12 +13,14 @@ from . import Differentiable
 import sys
 
 class Convolve1d(Differentiable):
-    __slots__ = ['A','B','ncolors']
-    def __init__(self, A, B, ncolors=1):
+    __slots__ = ['A', 'B', 'ncolors', 'stride']
+
+    def __init__(self, A, B, ncolors=1, stride=1):
         super(Convolve1d, self).__init__([A,B])
-        self.A    = A
-        self.B    = B
+        self.A       = A
+        self.B       = B
         self.ncolors = ncolors
+        self.stride  = stride
 
     def _compute_value(self):
         A = self.A.value
@@ -26,42 +28,48 @@ class Convolve1d(Differentiable):
         filtersize = B.shape[0]/self.ncolors
 
         # Broadcast to get color channels
-        A = np.reshape(A, (A.shape[0], self.ncolors, -1))
-        D = A.shape[-1] - filtersize + 1
+        A = np.reshape(A, (A.shape[0], -1))
+
+        D = A.shape[-1]/self.ncolors/self.stride - filtersize + 1
         output = np.zeros((A.shape[0], D, B.shape[1]))
 
-        offset = 0
-        for j in xrange(D):
-            output[:,j,:] = np.dot(A[:, :,offset:offset+filtersize].reshape((A.shape[0],-1)), B)
-            offset += 1
+        inds   = np.arange(filtersize)
+        inds   = np.concatenate([inds+(i*A.shape[1]/self.ncolors) for i in xrange(self.ncolors)])
+        for j in xrange(0, D):
+            output[:,j,:] = np.dot(A[:, inds], B)
+            inds   += self.stride
 
         return output.reshape((A.shape[0], D*B.shape[1]))
 
     def _local_grad(self, parent, d_out_d_self):
+        A          = self.A.value
+        A          = np.reshape(A, (A.shape[0], -1))        
         filtersize = self.B.shape[0]/self.ncolors
-        if parent == 0:
-            output     = np.zeros((self.A.shape[0], self.A.shape[1]))
-            B          = self.B.value
-            output = output.reshape((output.shape[0], self.ncolors, -1))
-            outgrad = d_out_d_self.reshape(d_out_d_self.shape[0], -1, B.shape[-1])
-            for i in xrange(outgrad.shape[1]):
-                output[:,:,i:i+filtersize] += np.dot(outgrad[:,i,:], B.T).reshape((output.shape[0], self.ncolors, filtersize)) 
+        inds   = np.arange(filtersize)
+        inds   = np.concatenate([inds+(i*A.shape[1]/self.ncolors) for i in xrange(self.ncolors)])            
 
-            return output.reshape((output.shape[0], -1))
+        if parent == 0:
+            output     = np.zeros((self.A.shape))
+            B          = self.B.value
+            outgrad = d_out_d_self.reshape(d_out_d_self.shape[0], -1, B.shape[-1])
+
+            for j in xrange(outgrad.shape[1]):
+                output[:,inds] += np.dot(outgrad[:,j,:], B.T)
+                inds += self.stride
+
+            return output
 
         elif parent == 1:
-            output     = np.zeros((self.B.shape[0], self.B.shape[1]))
-            A          = self.A.value
-            A          = np.reshape(A, (A.shape[0], self.ncolors, -1))
-            filtersize = self.B.shape[0]/self.ncolors
+            output     = np.zeros((self.B.shape[0], self.B.shape[1]))           
             outgrad    = np.reshape(d_out_d_self, (d_out_d_self.shape[0], -1, self.B.shape[1]))
-            offset = 0
-            for j in xrange(outgrad.shape[1]):
-                output += np.dot(A[:,:,offset:offset+filtersize].reshape((A.shape[0],-1)).T, outgrad[:,j,:])
-                offset += 1
+
+            for j in xrange(0, outgrad.shape[1]):
+                output += np.dot(A[:,inds].T, outgrad[:,j,:])
+                inds   += self.stride
+
             return output
         else:   
-            raise Exception("Not a parent of me")
+            raise Exception("Not a parent of me")   
 
 class Pool(Differentiable):
     __slots__ = ['A', 'width', 'indices', 'ncolors']
