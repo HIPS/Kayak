@@ -137,20 +137,26 @@ class L2Normalize(Nonlinearity):
         return val * (d_out_d_self / X - np.sum(val2 * d_out_d_self, axis=self.axis, keepdims=True))
 
 class BatchNormalize(Nonlinearity):
-    __slots__ = ['X']
-    def __init__(self, X):
+    __slots__ = ['X', 'nchannels']
+    def __init__(self, X, nchannels=1):
         super(BatchNormalize, self).__init__(X)
+        self.nchannels = nchannels
 
     def _compute_value(self):
         X   = self.X.value
-        mu  = np.mean(self.X.value, axis=0, keepdims=True)
+        N   = X.shape[0]
+        X   = X.reshape(N * self.nchannels, -1)
+        mu  = np.mean(X, axis=0, keepdims=True)
         sig = np.mean((X - mu)**2, axis=0, keepdims=True) + 1e-6
         val = (X - mu) * sig**-0.5
-        return val
+        return val.reshape(N, -1)
 
     def _local_grad(self, parent, d_out_d_self):
         X          = self.X.value
-        mu         = np.mean(self.X.value, axis=0, keepdims=True)
+        dims       = X.shape
+        X          = X.reshape(dims[0] * self.nchannels, -1)
+        d_out_d_self = d_out_d_self.reshape(X.shape)
+        mu         = np.mean(X, axis=0, keepdims=True)
         diff       = X - mu
         sig        = np.mean(diff**2, axis=0, keepdims=True) + 1e-6
         invsqrtsig = sig**-0.5
@@ -160,4 +166,4 @@ class BatchNormalize(Nonlinearity):
         dsig = np.sum(d_out_d_self*diff*(-0.5*sig**-(3./2.)), axis=0, keepdims=True)
         dmu  = np.sum(d_out_d_self * -invsqrtsig, axis=0, keepdims=True) + dsig*np.mean(-2.0*diff, axis=0, keepdims=True)
         dx   = d_out_d_self * invsqrtsig + dsig * 2.0 * diff/m + dmu/m
-        return dx
+        return dx.reshape(dims[0], -1)
