@@ -92,9 +92,9 @@ class Batcher(Differentiable):
 
         if self._random_batches:
             self.ordering = self._rng.permutation(self._total_size)
-            self._value = self.ordering[self.start:self.end]
+            self.value = self.ordering[self.start:self.end]
         else:
-            self._value = slice(self.start, self.end)
+            self.value = slice(self.start, self.end)
 
         for node in self._dropout_nodes:
             node.draw_new_mask()
@@ -122,9 +122,9 @@ class Batcher(Differentiable):
         self._clear_value_cache()
 
         if self._random_batches:
-            self._value = self.ordering[self.start:self.end]
+            self.value = self.ordering[self.start:self.end]
         else:
-            self._value = slice(self.start, self.end)
+            self.value = slice(self.start, self.end)
 
         self.start += self._batch_size
         self.end    = min(self.start + self._batch_size, self._total_size)
@@ -132,7 +132,7 @@ class Batcher(Differentiable):
         for node in self._dropout_nodes:
             node.draw_new_mask()
 
-        return self._value
+        return self.value
 
     def add_dropout_node(self, node):
         self._dropout_nodes.append(node)
@@ -142,6 +142,6 @@ class Batcher(Differentiable):
         Turns off batching. Run before test-time.
         """
         self._clear_value_cache()
-        self._value = slice(None, None) # All indices
+        self.value = slice(None, None) # All indices
         for node in self._dropout_nodes:
             node.reinstate_units()
